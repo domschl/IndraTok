@@ -196,10 +196,10 @@ void stringDisplayHex(const String *source) {
   //char *box="└────────c─────────┘";
   *l1=0;
   *l2=0;
-  for (unsigned int i=0; i<source->len; i++) {
-    _toHex(charStr, source->buf[i]);
-    printf("%s ",charStr);
-  }
+  //for (unsigned int i=0; i<source->len; i++) {
+  //  _toHex(charStr, source->buf[i]);
+  //  printf("%s ",charStr);
+  //}
   printf("\n");
   for (unsigned int i=0; i<source->len; i++) {
     unsigned int len=utf8CharLen(source->buf[i]);
@@ -214,7 +214,6 @@ void stringDisplayHex(const String *source) {
       }
       strncpy(charStr, (char *)&source->buf[i], len);
       charStr[len]=0;
-      printf("%d %d %s\n", i, len, charStr);
       int chrs=len*5-3;
       int n1=chrs/2-1;
       int n2=chrs-n1-2;
