@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
   
   if (!makeString(&a, "Hello, world!")) errs += 1;
   stringPrintLn(&a);
-  stringPartByte(&a, &b, 5, 3);
+  stringPartBytes(&a, &b, 5, 3);
   stringPrintLn(&b);
 
   stringFromCharString(&a, "Hello, ");
@@ -48,6 +48,16 @@ int main(int argc, char *argv[]) {
       errs += 1;
     }
   }
+
+  stringFromCharString(&a, "Hello, World!");
+  stringFromCharString(&b, "orld!");
+  int ind = stringFindUtf8(&a, &b);
+  printf("Ind=%d\n", ind);
+
+  stringFromCharString(&a, "mömömö");
+  stringPartUtf8(&a, &b, 2, 2);
+  printf("Part: "); stringPrintLn(&b);
+  
   stringFree(&a);
   stringFree(&b);
   stringFree(&c);

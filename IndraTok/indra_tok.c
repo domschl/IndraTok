@@ -64,7 +64,7 @@ void stringAppend(String *root, const String *appendix) {
   root->len=n;
 }
 
-void stringPartByte(const String *source, String *part, unsigned int start, unsigned int len) {
+void stringPartBytes(const String *source, String *part, unsigned int start, unsigned int len) {
   if (part == NULL) return;
   stringFree(part);
   if (source == NULL) return;
@@ -76,20 +76,20 @@ void stringPartByte(const String *source, String *part, unsigned int start, unsi
   memcpy(part->buf, &source->buf[start], n);
 }
 
-void stringStartByte(const String *source, String *start, unsigned int len) {
-  stringPartByte(source, start, 0, len);
+void stringStartBytes(const String *source, String *start, unsigned int len) {
+  stringPartBytes(source, start, 0, len);
 }
 
-void stringEndByte(const String *source, String *end, unsigned int len) {
+void stringEndBytes(const String *source, String *end, unsigned int len) {
   if (end == NULL) return;
   stringFree(end);
   if (source == NULL) return;
   unsigned int start = source->len - len;
   if (start < 0) start = 0;
-  stringPartByte(source, end, start, len);
+  stringPartBytes(source, end, start, len);
 }
 
-bool stringContains(const String *source, const String *token) {
+bool stringContainsBytes(const String *source, const String *token) {
   if (token==NULL) return false;
   if (source==NULL) return false;
   unsigned int l=0;
@@ -163,6 +163,57 @@ unsigned int stringLenUtf8(const String *source) {
   return n;
 }
 
+int stringFindUtf8(const String *source, const String *token) {
+  if (source==NULL || token==NULL) return -1;
+  if (source->len==0 || token->len==0) return -1;
+  if (source->len<token->len) return -1;
+  unsigned int ti=0, len, n=0;
+  int fnd = -1;
+  for (unsigned int i=0; i < source->len; i++) {
+    len = utf8CharLen(source->buf[i]);
+    if (len==0) return -1;
+    if (token->len - ti >= len && !memcmp(&source->buf[i],&token->buf[ti],len)) {
+      if (fnd == -1) fnd=n;
+      ti += len;
+      if (ti == token->len) return fnd;
+    } else {
+      fnd = -1;
+      ti = 0;
+    }
+    i += len-1;
+    n += 1;
+  }
+  return -1;
+}
+
+void stringPartUtf8(const String *source, String *part, unsigned int start, unsigned int len) {
+  if (part == NULL) return;
+  stringFree(part);
+  if (source== NULL) return;
+  if (stringLenUtf8(source) <= start) return;
+  unsigned int clen;
+  unsigned int n=0;
+  int p0=-1, p1=-1;
+  for (unsigned int i=0; i<source->len; i++) {
+    clen = utf8CharLen(source->buf[i]);
+    if (n==start) p0=i;
+    if (n==start+len) {
+      p1=i;
+      break;
+    }
+    n += 1;
+    i += clen-1;
+  }
+  if (p1==-1) p1=source->len;
+  if (p0==-1) return;
+  if (p0<p1) {
+    part->buf = (unsigned char *)malloc(p1-p0);
+    part->len = p1-p0;
+    memcpy(part->buf, &source->buf[p0], p1-p0);
+  }
+}
+
+// --- Just for debug:
 void _toHex(char *target, unsigned char byte) {
   int hn=(byte & 0xf0) >> 4;
   int ln=(byte & 0x0f);
@@ -188,18 +239,9 @@ void stringDisplayHex(const String *source) {
   char l1[20*5+5*4+1];
   char l2[20*5*4+1];    // Box chars
   char charStr[5];
-  //char *hex=" 0x54";
-  //char *box="└─c─┘";
-  //char *box="└─c─┘└─c─┘└─c─┘└─c─┘";
-  //char *box="└───c────┘";
-  //char *box="└──────c──────┘";
-  //char *box="└────────c─────────┘";
+  
   *l1=0;
   *l2=0;
-  //for (unsigned int i=0; i<source->len; i++) {
-  //  _toHex(charStr, source->buf[i]);
-  //  printf("%s ",charStr);
-  //}
   printf("\n");
   for (unsigned int i=0; i<source->len; i++) {
     unsigned int len=utf8CharLen(source->buf[i]);
