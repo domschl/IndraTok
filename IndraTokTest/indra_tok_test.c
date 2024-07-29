@@ -19,7 +19,7 @@ typedef struct _char_conv_test {
   unsigned int utf8Len;
 } CharConvTest;
 
-CharConvTest test1[] = {{ "Smörö", 5}, {"རྒྱུད་", 6}, {"", 0}, {"𐍈", 1}};
+CharConvTest test1[] = {{ "Smörö", 5}, {"རྒྱུད་", 6}, {"", 0}, {"𐍈", 1}, {"😁", 1}};
 
 int main(int argc, char *argv[]) {
   unsigned int errs = 0;
