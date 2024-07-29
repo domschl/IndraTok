@@ -20,3 +20,4 @@ void stringPrintLn(const String *source);
 unsigned int utf8CharLen(unsigned char ctok);
 unsigned int stringLenUtf8(const String *source);
 bool stringValidateUtf8(const String *source);
+void stringDisplayHex(const String *source);

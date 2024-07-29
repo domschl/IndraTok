@@ -163,7 +163,79 @@ unsigned int stringLenUtf8(const String *source) {
   return n;
 }
 
+void _toHex(char *target, unsigned char byte) {
+  int hn=(byte & 0xf0) >> 4;
+  int ln=(byte & 0x0f);
+  *target='0'; target++;
+  *target='x'; target++;
+  if (hn<10) *target='0'+hn;
+  else *target='A'+hn-10;
+  ++target;
+  if (ln<10) *target='0'+ln;
+  else *target='A'+ln-10;
+  ++target;
+  *target=0;
+}
 
 void stringDisplayHex(const String *source) {
-  
+  if (source==NULL) return;
+  if (source->len == 0) {
+    printf("<empty string>\n");
+    return;
+  }
+  unsigned int maxBytesLine = 20;
+  unsigned int curBytesLine = 0;
+  char l1[20*5+5*4+1];
+  char l2[20*5*4+1];    // Box chars
+  char charStr[5];
+  //char *hex=" 0x54";
+  //char *box="└─c─┘";
+  //char *box="└─c─┘└─c─┘└─c─┘└─c─┘";
+  //char *box="└───c────┘";
+  //char *box="└──────c──────┘";
+  //char *box="└────────c─────────┘";
+  *l1=0;
+  *l2=0;
+  for (unsigned int i=0; i<source->len; i++) {
+    _toHex(charStr, source->buf[i]);
+    printf("%s ",charStr);
+  }
+  printf("\n");
+  for (unsigned int i=0; i<source->len; i++) {
+    unsigned int len=utf8CharLen(source->buf[i]);
+    if (len == 0 || len > 4) {
+      _toHex(charStr, source->buf[i]);
+      strcat(l1, " "); strcat(l1, charStr);
+      strcat(l2, "└ERR┘");
+    } else {
+      for (unsigned int j=0; j<len; j++) {
+        _toHex(charStr, source->buf[i+j]);
+        strcat(l1, " "); strcat(l1, charStr);
+      }
+      strncpy(charStr, (char *)&source->buf[i], len);
+      charStr[len]=0;
+      printf("%d %d %s\n", i, len, charStr);
+      int chrs=len*5-3;
+      int n1=chrs/2-1;
+      int n2=chrs-n1-2;
+      strcat(l2, "└");
+      for (unsigned int j=0; j<n1; j++) strcat(l2, "─");
+      strcat(l2, " ");
+      strcat(l2, charStr);
+      strcat(l2, " ");
+      for (unsigned int j=0; j<n2; j++) strcat(l2, "─");
+      strcat(l2, "┘");
+    }
+    if (strlen(l1) > 5*20-35) {
+      printf("%s\n",l1);
+      printf("%s\n",l2);
+      *l1=0;
+      *l2=0;
+    }
+    i+=len-1;
+  }
+  if (strlen(l1)>0) {
+    printf("%s\n",l1);
+    printf("%s\n",l2);
+  }  
 }

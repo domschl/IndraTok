@@ -1,3 +1,4 @@
+// -*- coding: utf-8 -*-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -38,6 +39,7 @@ int main(int argc, char *argv[]) {
 
   for (unsigned int i=0; i<sizeof(test1)/sizeof(test1[0]); i++) {
     stringFromCharString(&a, test1[i].charString);
+    stringDisplayHex(&a);
     unsigned int len=stringLenUtf8(&a);
     if (len == test1[i].utf8Len) {
       printf("Correct utf8-length for >%s<, len=%u\n", test1[i].charString, len); 
