@@ -33,9 +33,8 @@ void stringFromCharString(String *string, const char* charString) {
 
 char* stringToCharStringAlloc(const String *string) {
   if (string == NULL) return NULL;
-  if (string->len == 0) return NULL;
   char *charString=(char *)malloc(string->len+1);
-  memcpy(charString, string->buf, string->len);
+  if (string->len) memcpy(charString, string->buf, string->len);
   charString[string->len]=0;
   return charString;
 }
@@ -52,14 +51,19 @@ void stringToCharStringN(const String *string, char *charString, unsigned int ch
 
 void stringAppend(String *root, const String *appendix) {
   if (root == NULL || appendix == NULL) return;
-  if (root->buf==NULL || appendix->buf==NULL) return;
+  if (appendix->buf==NULL) return;
   int n = root->len + appendix->len;
-  unsigned char* oldRoot = (unsigned char *)malloc(root->len);
-  memcpy(oldRoot, root->buf, root->len);
-  free(root->buf);
+  unsigned char* oldRoot = NULL;
+  if (root->len) {
+    oldRoot = (unsigned char *)malloc(root->len);
+    memcpy(oldRoot, root->buf, root->len);
+    free(root->buf);
+  }
   root->buf=(unsigned char *)malloc(n);
-  memcpy(root->buf, oldRoot, root->len);
-  free(oldRoot);
+  if (oldRoot) {
+    memcpy(root->buf, oldRoot, root->len);
+    free(oldRoot);
+  }
   memcpy(&root->buf[root->len], appendix->buf, appendix->len);
   root->len=n;
 }
