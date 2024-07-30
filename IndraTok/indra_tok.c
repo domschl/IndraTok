@@ -102,6 +102,20 @@ bool stringContainsBytes(const String *source, const String *token) {
   else return false;
 }
 
+long stringFindBytes(const String *source, const String *token) {
+  if (token==NULL) return -1;
+  if (source==NULL) return -1;
+  unsigned int l=0, fnd = -1;
+  for (unsigned int s=0; s<source->len; s++) {
+    if (l+1 > token->len) return s;
+    if (source->buf[s] != token->buf[l]) continue;
+    if (fnd == -1) fnd=s;
+    l += 1;
+  }
+  if (l+1 > token->len) return fnd;
+  else return -1;
+}
+
 void stringPrint(const String *source) {
   if (source == NULL) return;
   if (source->len == 0) return;
