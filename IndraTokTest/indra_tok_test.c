@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "indra_tok.h"
+#include "crc_crypt_hash.h"
 
 bool makeString(String *a, const char *str) {
   printf("Creating string: %s\n", str);
