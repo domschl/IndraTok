@@ -64,7 +64,7 @@ void stringAppend(String *root, const String *appendix) {
   root->len=n;
 }
 
-void stringPartBytes(const String *source, String *part, unsigned int start, unsigned int len) {
+void stringPartBytes(const String *source, String *part, unsigned int start, unsigned long len) {
   if (part == NULL) return;
   stringFree(part);
   if (source == NULL) return;
@@ -76,11 +76,11 @@ void stringPartBytes(const String *source, String *part, unsigned int start, uns
   memcpy(part->buf, &source->buf[start], n);
 }
 
-void stringStartBytes(const String *source, String *start, unsigned int len) {
+void stringStartBytes(const String *source, String *start, unsigned long len) {
   stringPartBytes(source, start, 0, len);
 }
 
-void stringEndBytes(const String *source, String *end, unsigned int len) {
+void stringEndBytes(const String *source, String *end, unsigned long len) {
   if (end == NULL) return;
   stringFree(end);
   if (source == NULL) return;
@@ -102,18 +102,58 @@ bool stringContainsBytes(const String *source, const String *token) {
   else return false;
 }
 
-long stringFindBytes(const String *source, const String *token) {
+long stringFindBytes(const String *source, const String *token, unsigned long offset) {
   if (token==NULL) return -1;
   if (source==NULL) return -1;
-  unsigned int l=0, fnd = -1;
-  for (unsigned int s=0; s<source->len; s++) {
-    if (l+1 > token->len) return s;
-    if (source->buf[s] != token->buf[l]) continue;
+  unsigned long l=0;
+  long fnd = -1;
+  for (unsigned long s=offset; s<source->len; s++) {
+    if (l == token->len) return fnd;
+    if (source->buf[s] != token->buf[l]) {
+      l = 0;
+      fnd = -1;
+      continue;
+    }
     if (fnd == -1) fnd=s;
     l += 1;
   }
-  if (l+1 > token->len) return fnd;
+  if (l >= token->len) return fnd;
   else return -1;
+}
+
+long stringFindCountBytes(const String *source, const String *token) {
+  if (token==NULL) return -1;
+  if (source==NULL) return -1;
+  unsigned int l=0;
+  unsigned long cnt=0;
+  long fnd = -1;
+  for (unsigned long s=0; s<source->len; s++) {
+    if (l == token->len) {
+      cnt += 1;
+      printf("Found at %ld: %ld\n", fnd, cnt);
+      l = 0;
+      if (source->buf[s] == token->buf[l]) {
+        fnd = s;
+        l += 1;
+        continue;
+      } else {
+        fnd = -1;
+        continue;
+      }
+    }
+    if (source->buf[s] != token->buf[l]) {
+      l = 0;
+      fnd = -1;
+      continue;
+    }
+    if (fnd == -1) fnd = s;
+    l += 1;
+  }
+  if (l >= token->len) {
+    cnt += 1;
+    printf("Final found at %ld end: %ld\n", fnd, cnt);
+  }
+  return cnt;
 }
 
 void stringPrint(const String *source) {

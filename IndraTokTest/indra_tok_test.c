@@ -58,6 +58,28 @@ int main(int argc, char *argv[]) {
   stringFromCharString(&a, "mömömö");
   stringPartUtf8(&a, &b, 2, 2);
   printf("Part: "); stringPrintLn(&b);
+
+  stringFromCharString(&a, "momomo");
+  stringPartBytes(&a, &b, 2, 2);
+  stringPrint(&a); printf(" "); stringPrintLn(&b);
+  long cnt = stringFindCountBytes(&a, &b);
+  printf("Tok-count: %ld (3)\n", cnt);
+
+  long idx = stringFindBytes(&a, &b, 0);
+  printf("First tok: %ld (0)\n", idx);
+  idx = stringFindBytes(&a, &b, 1);
+  printf("First tok (off=1): %ld (2)\n", idx);
+  idx = stringFindBytes(&a, &b, 3);
+  printf("First tok (off=3): %ld (4)\n", idx);
+  idx = stringFindBytes(&a, &b, 5);
+  printf("First tok (off=5): %ld (-1)\n", idx);
+
+  stringFromCharString(&a, "7777777");
+  stringPartBytes(&a, &b, 2, 1);
+  stringPrint(&a); printf(" "); stringPrintLn(&b);
+  cnt = stringFindCountBytes(&a, &b);
+  printf("Tok-count: %ld (7)\n", cnt);
+
   
   stringFree(&a);
   stringFree(&b);

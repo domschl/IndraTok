@@ -2,9 +2,14 @@
 #include <stdbool.h>
 
 typedef struct _string {
-  unsigned int len;
+  unsigned long len;
   unsigned char *buf;
 } String;
+
+typedef struct _string_array {
+  unsigned long len;
+  String *pStrings;
+} StringArray;
 
 void stringFree(String *string);
 
@@ -14,10 +19,12 @@ void stringToCharStringN(const String *string, char *charString, unsigned int ch
 
 void stringAppend(String *root, const String *appendix);
 
-void stringPartBytes(const String *source, String *part, unsigned int start, unsigned int len);
-void stringStartBytes(const String *source, String *start, unsigned int len);
-void stringEndBytes(const String *source, String *end, unsigned int len);
+void stringPartBytes(const String *source, String *part, unsigned int start, unsigned long len);
+void stringStartBytes(const String *source, String *start, unsigned long len);
+void stringEndBytes(const String *source, String *end, unsigned long len);
 bool stringContainsBytes(const String *source, const String *token);
+long stringFindBytes(const String *source, const String *token, unsigned long offset);
+long stringFindCountBytes(const String *source, const String *token);
 
 void stringPrint(const String *source);
 void stringPrintLn(const String *source);
