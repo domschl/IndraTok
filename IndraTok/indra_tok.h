@@ -2,8 +2,8 @@
 #include <stdbool.h>
 
 typedef struct _string {
-  unsigned long len;
   unsigned char *buf;
+  unsigned long len;
 } String;
 
 typedef struct _string_array {
