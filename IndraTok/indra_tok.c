@@ -3,95 +3,56 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "indra_tok.h"
+#include "indra_ent.h"
 
-/*! Free memory allocated within String
-  @param string, a pointer to a String instance
-*/
-void stringFree(String *string) {
-  if (string == NULL) return;
-  if (string->len>0) {
-    if (string->buf != NULL) {
-      free(string->buf);
-      string->buf=(unsigned char *)NULL;
-    }
-    string->len=0;
-  } else {
-    string->buf=(unsigned char *)NULL;
-  }
-}
 
-void stringFromCharString(String *string, const char* charString) {
-  if (string==NULL || charString ==NULL) return;
-  stringFree(string);
-  if (strlen(charString)>0) {
-    string->len = strlen(charString);
-    string->buf = (unsigned char *)malloc(string->len);
-    memcpy(string->buf, charString, string->len);
-  }
-}
-
-char* stringToCharStringAlloc(const String *string) {
-  if (string == NULL) return NULL;
-  char *charString=(char *)malloc(string->len+1);
-  if (string->len) memcpy(charString, string->buf, string->len);
-  charString[string->len]=0;
-  return charString;
-}
-
-void stringToCharStringN(const String *string, char *charString, unsigned int charStringMemSize) {
-  if (string == NULL || charString == NULL) return;
-  unsigned int n = string->len;
-  if (string->len >= charStringMemSize) {
-    n=charStringMemSize -1;
-  }
-  memset(charString, 0, charStringMemSize);
-  memcpy(charString, string->buf, n);
-}
-
-void stringAppend(String *root, const String *appendix) {
+void stringAppend(IndraEnt *root, const IndraEnt *appendix) {
   if (root == NULL || appendix == NULL) return;
+  if (root->type != IT_STRING || appendix->type!=IT_STRING) return;
   if (appendix->buf==NULL) return;
   int n = root->len + appendix->len;
-  unsigned char* oldRoot = NULL;
+  char* oldRoot = NULL;
   if (root->len) {
-    oldRoot = (unsigned char *)malloc(root->len);
+    oldRoot = (char *)malloc(root->len);
     memcpy(oldRoot, root->buf, root->len);
     free(root->buf);
   }
-  root->buf=(unsigned char *)malloc(n);
+  root->buf=(unsigned char *)malloc(n + 1);
   if (oldRoot) {
     memcpy(root->buf, oldRoot, root->len);
     free(oldRoot);
   }
   memcpy(&root->buf[root->len], appendix->buf, appendix->len);
+  ((char *)root->buf)[n] = 0;
   root->len=n;
 }
 
-void stringPartBytes(const String *source, String *part, unsigned int start, unsigned long len) {
-  if (part == NULL) return;
-  stringFree(part);
+void stringPartBytes(const IndraEnt *source, IndraEnt **ppPart, unsigned int start, unsigned long len) {
+  if (ppPart == NULL) return;
   if (source == NULL) return;
   if (start > source->len) return;
   unsigned int n = len;
   if (start + n > source->len) n = source->len - start;
-  part->buf=(unsigned char*) malloc(n);
-  part->len=n;
-  memcpy(part->buf, &source->buf[start], n);
+  *ppPart = (IndraEnt *)malloc(n+1);
+  (*ppPart)->type = IT_STRING;
+  (*ppPart)->len = n;
+  (*ppPart)->buf = malloc(n+1);
+  memcpy((*ppPart)->buf, &source->buf[start], n);
 }
 
-void stringStartBytes(const String *source, String *start, unsigned long len) {
-  stringPartBytes(source, start, 0, len);
+void stringStartBytes(const IndraEnt *source, IndraEnt **ppStart, unsigned long len) {
+  stringPartBytes(source, ppStart, 0, len);
 }
 
-void stringEndBytes(const String *source, String *end, unsigned long len) {
-  if (end == NULL) return;
-  stringFree(end);
+void stringEndBytes(const IndraEnt *source, IndraEnt **ppEnd, unsigned long len) {
   if (source == NULL) return;
-  unsigned int start = source->len - len;
-  if (start < 0) start = 0;
-  stringPartBytes(source, end, start, len);
+  unsigned long start;
+  if (source->len < len) start = 0;
+  else start = source->len - len;
+  stringPartBytes(source, ppEnd, start, len);
 }
+
+// XXXXX
 
 bool stringContainsBytes(const String *source, const String *token) {
   if (token==NULL) return false;

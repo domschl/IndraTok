@@ -76,14 +76,6 @@ IndraEnt *itCreateString(char str[]) {
   return pie;
 }
 
-IndraEnt *itCreateUtf8(char strUtf8[]) {
-  if (strUtf8 == NULL) return NULL;
-  IndraEnt *pie = itCreateString(strUtf8);
-  if (pie == NULL) return NULL;
-  pie->type = IT_UTF8;
-  return pie;
-}
-
 IndraEnt *itCreateInt(int i) {
   IndraEnt *pie = (IndraEnt *)malloc(sizeof(IndraEnt));
   if (!pie) return NULL;
@@ -199,9 +191,6 @@ void itPrint(IndraEnt *pie) {
     printf("\n");
     break;
   case IT_STRING:
-    printf("%s", (char *)pie->buf);
-    break;
-  case IT_UTF8:
     printf("%s", (char *)pie->buf);
     break;
   case IT_INT:
