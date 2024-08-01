@@ -14,5 +14,7 @@ unsigned int utf8CharLen(unsigned char ctok);
 bool stringValidateUtf8(const IndraEnt *source);
 unsigned int stringLenUtf8(const IndraEnt *source);
 int stringFindUtf8(const IndraEnt *source, const IndraEnt *token);
+long stringFindCountUtf8(const IndraEnt *source, const IndraEnt *token);
 void stringPartUtf8(const IndraEnt *source, IndraEnt **ppPart, unsigned int start, unsigned int len);
 void stringDisplayHex(const IndraEnt *source);
+long stringSplitUtf8(const IndraEnt *source, IndraEntArray **ppParts, const IndraEnt *token);

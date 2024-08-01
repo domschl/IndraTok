@@ -115,30 +115,95 @@ int main(int argc, char *argv[]) {
   } else {
     oks += 1;
   }
+  long cnt = stringFindCountUtf8(a, b);
+  if (cnt != 3) {
+    printf("ERROR: token count, got %ld, expected 3\n", cnt);
+    errs += 1;
+  } else {
+    oks += 1;
+  }
+  itDelete(a); itDelete(b);
+
+  
+  a = itCreateBytes((unsigned char *)"momomo", 6);
+  stringPartBytes(a, &b, 2, 2);
+  if (memcmp((unsigned char *)b->buf, (unsigned char *)"mo", 2)) {
+    errs += 1;
+    printf("ERROR: part expected <mo>, got: "); itPrint(b);
+  } else {
+    oks +=1;
+  }
+  itPrint(a); printf(" "); itPrintLn(b);
+  cnt = stringFindCountBytes(a, b);
+  if (cnt != 3) {
+    printf("ERROR: Tok-count: %ld (3)\n", cnt);
+    errs += 1;
+  } else {
+    oks += 1;
+  }
+
+  long idx = stringFindBytes(a, b, 0);
+  printf("First tok: %ld (0)\n", idx);
+  if (idx != 0) {
+    printf("ERROR index");
+    errs += 1;
+  } else {
+    oks += 1;
+  }
+  idx = stringFindBytes(a, b, 1);
+  printf("First tok (off=1): %ld (2)\n", idx);
+  if (idx!=2) {
+    printf("ERROR index");
+    errs += 1;
+  } else {
+    oks += 1;
+  } 
+  idx = stringFindBytes(a, b, 3);
+  printf("First tok (off=3): %ld (4)\n", idx);
+  if (idx!=4) {
+    printf("ERROR index");
+    errs += 1;
+  } else {
+    oks += 1;
+  } 
+  idx = stringFindBytes(a, b, 5);
+  printf("First tok (off=5): %ld (-1)\n", idx);
+  if (idx != -1) {
+    printf("ERROR index");
+    errs += 1;
+  } else {
+    oks += 1;
+  } 
   itDelete(a); itDelete(b);
   
-  /*
-  stringFromCharString(&a, "momomo");
-  stringPartBytes(&a, &b, 2, 2);
-  stringPrint(&a); printf(" "); stringPrintLn(&b);
-  long cnt = stringFindCountBytes(&a, &b);
-  printf("Tok-count: %ld (3)\n", cnt);
-
-  long idx = stringFindBytes(&a, &b, 0);
-  printf("First tok: %ld (0)\n", idx);
-  idx = stringFindBytes(&a, &b, 1);
-  printf("First tok (off=1): %ld (2)\n", idx);
-  idx = stringFindBytes(&a, &b, 3);
-  printf("First tok (off=3): %ld (4)\n", idx);
-  idx = stringFindBytes(&a, &b, 5);
-  printf("First tok (off=5): %ld (-1)\n", idx);
-
-  stringFromCharString(&a, "7777777");
-  stringPartBytes(&a, &b, 2, 1);
-  stringPrint(&a); printf(" "); stringPrintLn(&b);
-  cnt = stringFindCountBytes(&a, &b);
+  a = itCreateString("7777777");
+  stringPartUtf8(a, &b, 2, 1);
+  itPrint(a); printf(" "); itPrintLn(b);
+  if (strcmp(b->buf, "7")) {
+    printf("ERROR string part, expected >7<, got: "); itPrint(b);
+    errs+=1;
+  } else {
+    oks+=1;
+  }
+  cnt = stringFindCountUtf8(a, b);
   printf("Tok-count: %ld (7)\n", cnt);
-*/
+  if (cnt!=7) {
+    printf("ERROR: wrong count, expected 7, got: %lu\n", cnt);
+    errs += 1;
+  } else {
+    oks += 1;
+  }
+  itDelete(a); itDelete(b);
+
+  a = itCreateString("for|you|more");
+  IndraEntArray *ar;
+  b = itCreateString("|");
+  stringSplitUtf8(a, &ar, b);
+
+  itDelete(a);
+  itDelete(b);
+  itDeleteArray(ar);
+  
   printf("\nErrors: %u, Oks: %u\n", errs, oks);
   return errs;
 }

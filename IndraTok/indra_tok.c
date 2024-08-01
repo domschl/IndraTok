@@ -38,7 +38,7 @@ void stringPartBytes(const IndraEnt *source, IndraEnt **ppPart, unsigned int sta
   unsigned int n = len;
   if (start + n > source->len) n = source->len - start;
   *ppPart = (IndraEnt *)malloc(sizeof(IndraEnt));
-  (*ppPart)->type = IT_STRING;
+  (*ppPart)->type = IT_BYTES;
   (*ppPart)->len = n;
   (*ppPart)->buf = malloc(n);
   memcpy((*ppPart)->buf, &(((unsigned char *)source->buf)[start]), n);
@@ -196,6 +196,43 @@ int stringFindUtf8(const IndraEnt *source, const IndraEnt *token) {
   return -1;
 }
 
+long stringFindCountUtf8(const IndraEnt *source, const IndraEnt *token) {
+  if (token==NULL) return -1;
+  if (source==NULL) return -1;
+  if (source->type != IT_STRING || token->type != IT_STRING) return false;
+  unsigned int l=0;
+  unsigned long cnt=0;
+  long fnd = -1;
+  for (unsigned long s=0; s<source->len; s++) {
+    if (l == token->len) {
+      cnt += 1;
+      printf("Found at %ld: %ld\n", fnd, cnt);
+      l = 0;
+      if (((unsigned char *)source->buf)[s] == ((unsigned char *)token->buf)[l]) {
+        fnd = s;
+        l += 1;
+        continue;
+      } else {
+        fnd = -1;
+        continue;
+      }
+    }
+    if (((unsigned char *)source->buf)[s] != ((unsigned char *)token->buf)[l]) {
+      l = 0;
+      fnd = -1;
+      continue;
+    }
+    if (fnd == -1) fnd = s;
+    l += 1;
+  }
+  if (l >= token->len) {
+    cnt += 1;
+    printf("Final found at %ld end: %ld\n", fnd, cnt);
+  }
+  return cnt;
+}
+
+
 void stringPartUtf8(const IndraEnt *source, IndraEnt **ppPart, unsigned int start, unsigned int len) {
   if (ppPart == NULL || source== NULL) return;
   if (source->type != IT_STRING) return;
@@ -224,6 +261,56 @@ void stringPartUtf8(const IndraEnt *source, IndraEnt **ppPart, unsigned int star
     memcpy((*ppPart)->buf, &(((unsigned char *)source->buf)[p0]), p1-p0);
   }
 }
+
+long stringSplitUtf8(const IndraEnt *source, IndraEntArray **ppParts, const IndraEnt *token) {
+  if (token==NULL) return -1;
+  if (source==NULL) return -1;
+  if (source->type != IT_STRING || token->type != IT_STRING) return false;
+  unsigned int l=0;
+  unsigned long cnt=0;
+  long fnd = -1;
+  IndraEnt *prt;
+  unsigned long part_start = 0;
+  for (unsigned long s=0; s<source->len; s++) {
+    if (l == token->len) {
+      if (cnt==0) {
+        (*ppParts) = itCreateArray(IT_STRING, 4);
+      }
+      char *s_tmp = (char *)malloc(fnd-part_start+1);
+      memcpy(s_tmp, &source[fnd], fnd-part_start);
+      s_tmp[fnd-part_start]=0;
+      prt = itCreateString(s_tmp);
+      free(s_tmp);
+      itaAppend(ppParts, prt);
+      cnt += 1;
+      printf("Found at %ld: %ld\n", fnd, cnt);
+      l = 0;
+      if (((unsigned char *)source->buf)[s] == ((unsigned char *)token->buf)[l]) {
+        fnd = s;
+        l += 1;
+        continue;
+      } else {
+        part_start = s;
+        fnd = -1;
+        continue;
+      }
+    }
+    if (((unsigned char *)source->buf)[s] != ((unsigned char *)token->buf)[l]) {
+      l = 0;
+      part_start = fnd;
+      fnd = -1;
+      continue;
+    }
+    if (fnd == -1) fnd = s;
+    l += 1;
+  }
+  if (l >= token->len) {
+    cnt += 1;
+    printf("Final found at %ld end: %ld\n", fnd, cnt);
+  }
+  return cnt;
+}
+
 
 // --- Just for debug:
 void _toHex(char *target, unsigned char byte) {

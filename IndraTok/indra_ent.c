@@ -315,6 +315,10 @@ bool itaSetGrow(IndraEntArray **piea, unsigned long index, IndraEnt *pie) {
   return true;
 }
 
+bool itaAppend(IndraEntArray **piea, IndraEnt *pie) {
+  return itaSetGrow(piea, (*piea)->count, pie);
+}
+
 bool itaDelete(IndraEntArray *piea, unsigned long index) {
   if (piea==NULL) return false;
   if (piea->count <= index) return false;

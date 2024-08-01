@@ -36,6 +36,7 @@ IndraEntArray *itResizeArray(IndraEntArray **, unsigned long capacity);
 bool itaSet(IndraEntArray *piea, unsigned long index, IndraEnt *pie);
 IndraEnt *itaGet(const IndraEntArray *piea, unsigned long index);
 bool itaSetGrow(IndraEntArray **piea, unsigned long index, IndraEnt *pie);
+bool itaAppend(IndraEntArray **piea, IndraEnt *pie);
 bool itaDelete(IndraEntArray *piea, unsigned long index);
 bool itaInsert(IndraEntArray *piea, unsigned long index, IndraEnt *pie);
 
