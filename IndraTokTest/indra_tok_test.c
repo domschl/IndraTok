@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
       oks += 1;
     }
     stringAppend(c, a); sum+=test1[i].utf8Len;
-    // stringDisplayHex(&a);
+    stringDisplayHex(a);
     unsigned long len=stringLenUtf8(a);
     if (len != test1[i].utf8Len) {
       printf("WRONG utf8-length for >%s<, got len=%lu, expected %lu\n", test1[i].charString, len, test1[i].utf8Len); 
