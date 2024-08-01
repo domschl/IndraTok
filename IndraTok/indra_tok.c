@@ -13,9 +13,11 @@ void stringAppend(IndraEnt *root, const IndraEnt *appendix) {
   if (appendix->buf==NULL) return;
   int n = root->len + appendix->len;
   char* oldRoot = NULL;
-  if (root->len) {
-    oldRoot = (char *)malloc(root->len);
-    memcpy(oldRoot, root->buf, root->len);
+  if (root->buf) {
+    if (root->len > 0) {
+      oldRoot = (char *)malloc(root->len);
+      memcpy(oldRoot, root->buf, root->len);
+    }
     free(root->buf);
   }
   root->buf=(unsigned char *)malloc(n + 1);
@@ -30,14 +32,15 @@ void stringAppend(IndraEnt *root, const IndraEnt *appendix) {
 
 void stringPartBytes(const IndraEnt *source, IndraEnt **ppPart, unsigned int start, unsigned long len) {
   if (ppPart == NULL) return;
+  *ppPart = NULL;
   if (source == NULL) return;
   if (start > source->len) return;
   unsigned int n = len;
   if (start + n > source->len) n = source->len - start;
-  *ppPart = (IndraEnt *)malloc(n+1);
+  *ppPart = (IndraEnt *)malloc(sizeof(IndraEnt));
   (*ppPart)->type = IT_STRING;
   (*ppPart)->len = n;
-  (*ppPart)->buf = malloc(n+1);
+  (*ppPart)->buf = malloc(n);
   memcpy((*ppPart)->buf, &(((unsigned char *)source->buf)[start]), n);
 }
 

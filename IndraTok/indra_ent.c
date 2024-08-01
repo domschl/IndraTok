@@ -7,7 +7,7 @@
 
 void itDelete(IndraEnt *pie) {
   if (pie == NULL) return;
-  if (pie->type != IT_NIL && pie->len>0 && pie->buf != NULL) {
+  if (pie->type != IT_NIL && pie->buf != NULL) {
     free(pie->buf);
   }
   free(pie);
@@ -235,4 +235,105 @@ void itPrint(IndraEnt *pie) {
 void itPrintLn(IndraEnt *pie) {
   itPrint(pie);
   printf("\n");
+}
+
+IndraEntArray *itCreateArray(IndraTypes type, unsigned long capacity) {
+  IndraEntArray *piea = (IndraEntArray *)malloc(sizeof(IndraEntArray));
+  memset(piea, 0, sizeof(IndraEntArray));
+  piea->type = type;
+  piea->capacity = capacity;
+  if (capacity>0) {
+    piea->ieArray = (IndraEnt *)malloc(sizeof(IndraEnt)*capacity);
+    for (unsigned long i=0; i<capacity; i++) {
+      memset(piea->ieArray[i].buf, 0, sizeof(IndraEnt));
+      piea->ieArray[i].type = type;
+    }
+  }
+  return piea;
+}
+
+void itDeleteArray(IndraEntArray *piea) {
+  if (piea == NULL) return;
+  if (piea->ieArray == NULL) {
+    free(piea);
+    return;
+  }
+  for (unsigned long i=0; i< piea->count; i++) {
+    if (piea->ieArray[i].buf != NULL) {
+      free(piea->ieArray[i].buf);
+    }
+  }
+  free(piea->ieArray);
+  free(piea);
+  return;
+}
+
+IndraEntArray *itResizeArray(IndraEntArray **oldArray, unsigned long capacity) {
+  if (oldArray == NULL) return NULL;
+  if (capacity < (*oldArray)->count) return NULL;
+  IndraEntArray *pieaNew = itCreateArray((*oldArray)->type, capacity);
+  if (pieaNew == NULL) return NULL;
+  memcpy(pieaNew->ieArray, (*oldArray)->ieArray, (*oldArray)->count * sizeof(IndraEnt));
+  pieaNew->count = (*oldArray)->count;
+  free((*oldArray)->ieArray);
+  free(*oldArray);
+  *oldArray = NULL;
+  return pieaNew;
+}
+
+IndraEnt *itaGet(const IndraEntArray *piea, unsigned long index) {
+  if (piea==NULL) return NULL;
+  if (piea->count <= index) return NULL;
+  return &piea->ieArray[index];
+}
+
+bool itaSet(IndraEntArray *piea, unsigned long index, IndraEnt *pie) {
+  if (piea == NULL) return false;
+  if (pie == NULL) return false;
+  if (piea->capacity <= index) return false;
+  if (piea->type != pie->type) return false;
+  piea->ieArray[index] = *pie;
+  if (index + 1 > piea->count) {
+    piea->count = index + 1;
+  }
+  return true;
+}
+
+bool itaSetGrow(IndraEntArray **piea, unsigned long index, IndraEnt *pie) {
+  if (piea == NULL || *piea == NULL) return false;
+  if (pie == NULL) return false;
+  if ((*piea)->capacity <= index) {
+    unsigned long new_capa = index * 3 / 2;
+    *piea = itResizeArray(piea, new_capa);
+    if (*piea == NULL) return false;
+  }
+  if ((*piea)->type != pie->type) return false;
+  (*piea)->ieArray[index] = *pie;
+  if (index + 1 > (*piea)->count) {
+    (*piea)->count = index + 1;
+  }
+  return true;
+}
+
+bool itaDelete(IndraEntArray *piea, unsigned long index) {
+  if (piea==NULL) return false;
+  if (piea->count <= index) return false;
+  if (piea->ieArray[index].buf != NULL) free(piea->ieArray[index].buf);
+  for (unsigned long i=index; i<piea->count-1; i++) {
+    piea->ieArray[i] = piea->ieArray[i+1];
+  }
+  piea->count -= 1;
+  return true;
+}
+
+bool itaInsert(IndraEntArray *piea, unsigned long index, IndraEnt *pie) {
+  if (piea==NULL) return false;
+  if (piea->count <= index) return false;
+  if (piea->count+1 >= piea->capacity) return false;
+  for (unsigned long i=piea->count; i>index; i--) {
+    piea->ieArray[i] = piea->ieArray[i-1];
+  }
+  piea->ieArray[index] = *pie;
+  piea->count += 1;
+  return true;
 }

@@ -26,7 +26,7 @@ CharConvTest test1[] = {{ "Smörö", 5}, {"རྒྱུད་", 6}, {"", 0}, {"�
 
 int main(int argc, char *argv[]) {
   unsigned int errs = 0, oks=0;
-  IndraEnt *a, *b, *c;
+  IndraEnt *a=NULL, *b=NULL, *c=NULL;
   if (!makeString(&a, "Hello, world!")) {
     printf("ERROR: Failed to create string.\n");
     errs += 1;
@@ -34,22 +34,28 @@ int main(int argc, char *argv[]) {
     oks += 1;
   }
   // printf("String: "); stringPrintLn(&a); printf(" | Part 5,3: ");
-  stringPartBytes(a, &b, 5, 3);
+  stringPartUtf8(a, &b, 5, 3);
   // stringPrintLn(&b);
-  char *pStr = (char *)b->buf;
-  if (strcmp(", w", pStr)) {
-    printf("ERROR: part expected to be >, w<, got: >%s<.\n", pStr);
+  if (b==NULL || b->buf == NULL) {
     errs += 1;
+    printf("ERROR: failed to get part\n");
   } else {
-    oks += 1;
+    char *pStr = (char *)b->buf;
+    if (strcmp(", w", pStr)) {
+      printf("ERROR: part expected to be >, w<, got: >%s<.\n", pStr);
+      errs += 1;
+    } else {
+      oks += 1;
+    }
   }
+  itDelete(b);
   itDelete(a);
   
   a = itCreateString("Hello, ");
   b = itCreateString("world!");
   stringAppend(a, b);
   itPrintLn(a);
-  pStr = (char *)a->buf;
+  char *pStr = (char *)a->buf;
   if (strcmp("Hello, world!", pStr)) {
     errs += 1;
     printf("Expected >Hello, world!<, got: >%s<\n", pStr);
