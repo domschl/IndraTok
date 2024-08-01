@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include <stdlib.h>
 
 uint16_t crc16_ccitt(const uint8_t *data_p, unsigned long length);

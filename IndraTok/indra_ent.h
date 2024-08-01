@@ -18,8 +18,9 @@ typedef struct _indra_ent_array {
 void itDelete(IndraEnt *pie);
 IndraEnt *itCreateChar(char c);
 IndraEnt *itCreateByte(unsigned char byte);
-IndraEnt *itCreateBytes(unsigned char bytes[], unsigned long len);
-IndraEnt *itCreateString(char str[]);
+IndraEnt *itCreateBytes(const unsigned char bytes[], unsigned long len);
+IndraEnt *itCreateString(const char str[]);
+IndraEnt *itCreateStringByLength(unsigned long strLength);
 IndraEnt *itCreateInt(int i);
 IndraEnt *itCreateUInt(unsigned int ui);
 IndraEnt *itCreateLong(long l);
@@ -27,3 +28,5 @@ IndraEnt *itCreateULong(unsigned long ul);
 IndraEnt *itCreateFloat(float f);
 IndraEnt *itCreateDouble(double df);
 
+void itPrint(IndraEnt *pie);
+void itPrintLn(IndraEnt *pie);

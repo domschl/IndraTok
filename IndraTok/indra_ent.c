@@ -43,7 +43,7 @@ IndraEnt *itCreateByte(unsigned char byte) {
   return pie;
 }
 
-IndraEnt *itCreateBytes(unsigned char bytes[], unsigned long len) {
+IndraEnt *itCreateBytes(const unsigned char bytes[], unsigned long len) {
   if (bytes == NULL) return NULL;
   IndraEnt *pie = (IndraEnt *)malloc(sizeof(IndraEnt));
   if (!pie) return NULL;
@@ -59,7 +59,7 @@ IndraEnt *itCreateBytes(unsigned char bytes[], unsigned long len) {
   return pie;
 }
 
-IndraEnt *itCreateString(char str[]) {
+IndraEnt *itCreateString(const char str[]) {
   if (str == NULL) return NULL;
   unsigned long len = strlen(str);
   IndraEnt *pie = (IndraEnt *)malloc(sizeof(IndraEnt));
@@ -73,6 +73,21 @@ IndraEnt *itCreateString(char str[]) {
   memcpy(pie->buf, str, sizeof(char) * len + 1);
   pie->type = IT_STRING;
   pie->len = sizeof(char) * len;
+  return pie;
+}
+
+IndraEnt *itCreateStringByLength(unsigned long strLength) {
+  IndraEnt *pie = (IndraEnt *)malloc(sizeof(IndraEnt));
+  if (!pie) return NULL;
+  memset(pie, 0, sizeof(IndraEnt));
+  pie->buf=malloc(strLength + 1);
+  if (!pie->buf) {
+    free(pie);
+    return NULL;
+  }
+  memset(pie->buf, 0, strLength + 1);
+  pie->type = IT_STRING;
+  pie->len = strLength;
   return pie;
 }
 
@@ -215,4 +230,9 @@ void itPrint(IndraEnt *pie) {
     printf("<NOT_IMPL>");
     break;
   }
+}
+
+void itPrintLn(IndraEnt *pie) {
+  itPrint(pie);
+  printf("\n");
 }
