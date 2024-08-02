@@ -253,6 +253,16 @@ int main(int argc, char *argv[]) {
   itDelete(a);
   itDelete(b);
 
+  a = itCreateString("Hum");
+  b = itCreateString("Bug");
+  itMapSet(piem, a, b); // Bad API, delete/moves a, b
+  itDelete(a);
+  itMapPrint(piem);
+  a = itCreateString("Hum");
+  c = itMapGet(piem, a);
+  printf("MapGet: "); itPrintLn(c);
+  itDelete(a);
+  itDelete(b);
 
   
   itMapDelete(piem);

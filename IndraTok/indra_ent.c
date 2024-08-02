@@ -390,7 +390,12 @@ bool itArrayInsert(IndraEntArray **ppiea, unsigned long index, IndraEnt *pie) {
     *ppiea = itArrayResize(ppiea, new_capa);
     if (*ppiea == NULL) return false;
   }
-  if ((*ppiea)->count+1 >= (*ppiea)->capacity) return false;
+  if ((*ppiea)->count+1 >= (*ppiea)->capacity) {
+    unsigned long new_capa = (*ppiea)->count * 3 / 2;
+    //printf("Growing array to %lu\n", new_capa);
+    *ppiea = itArrayResize(ppiea, new_capa);
+    if (*ppiea == NULL) return false;
+  }
   for (unsigned long i=(*ppiea)->count; i>index; i--) {
     (*ppiea)->ieArray[i] = (*ppiea)->ieArray[i-1];
   }
@@ -439,7 +444,7 @@ long _itMapHashIndexGet(IndraEntMap *piem, IndraEnt *pKey) {
   unsigned long n = piem->pHash->count;
   unsigned long l = 0;
   unsigned long r = n;
-  unsigned long *pCurHash;
+  unsigned long *pCurHash = NULL;
   unsigned long m = -1;
   while (l<r) {
     m = (l+r)/2;
@@ -460,9 +465,7 @@ long _itMapHashIndexGet(IndraEntMap *piem, IndraEnt *pKey) {
     if (l>=n ||  *pCurHash != hash) {
       return -l-1;  // Not found, return negative insertion point. Insert at -l-1.
     }
-  } else {
-    l = -1;
-  }
+  } 
   return l;
 }
 
@@ -506,7 +509,10 @@ bool itMapSet(IndraEntMap *piem, IndraEnt *pKey, IndraEnt *pValue) {
     piem->pValues->ieArray[index] = *pValue;
     pValue->buf = NULL;
   } else {
-    IndraEnt *pHash = itCreateULong((unsigned long)itCrc16Ccitt(pKey->buf, pKey->len));
+    unsigned long hash = (unsigned long)itCrc16Ccitt(pKey->buf, pKey->len);
+    printf("Hash-array: "); itArrayPrintLn(piem->pHash);
+    printf("Insertion at: %lu, hash: %lu\n", insertionIndex, hash);
+    IndraEnt *pHash = itCreateULong(hash);
     itArrayInsert(&(piem->pHash), insertionIndex, pHash);
     itDelete(pHash);
     itArrayInsert(&(piem->pKeys), insertionIndex, pKey);
