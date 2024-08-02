@@ -5,7 +5,6 @@
 
 #include "indra_ent.h"
 #include "indra_tok.h"
-#include "crc_crypt_hash.h"
 
 bool makeString(IndraEnt **ppa, const char *str) {
   //printf("Creating string: %s\n", str);
@@ -213,21 +212,21 @@ int main(int argc, char *argv[]) {
   IndraEntArray *ar;
   b = itCreateString("|");
   ar = stringSplitUtf8(a, b);
-  itaPrintLn(ar);
+  itArrayPrintLn(ar);
   
   itDelete(a);
   itDelete(b);
-  itDeleteArray(ar);
+  itArrayDelete(ar);
 
   for (unsigned long i=0; i<sizeof(test2)/sizeof(TokParseTest); i++) {
     printf("Tokparse >%s< token >%s<\n", test2[i].str, test2[i].tok);
     a = itCreateString(test2[i].str);
     b = itCreateString(test2[i].tok);
     ar = stringSplitUtf8(a, b);
-    itaPrintLn(ar);
+    itArrayPrintLn(ar);
     itDelete(a);
     itDelete(b);
-    itDeleteArray(ar);    
+    itArrayDelete(ar);    
   }
   
   printf("\nErrors: %u, Oks: %u\n", errs, oks);

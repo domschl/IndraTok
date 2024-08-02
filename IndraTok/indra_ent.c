@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "indra_ent.h"
+#include "indra_crc_crypt.h"
 
 
 void itDelete(IndraEnt *pie) {
@@ -256,7 +257,7 @@ void itPrintLn(const IndraEnt *pie) {
   printf("\n");
 }
 
-void itaPrint(const IndraEntArray *piea) {
+void itArrayPrint(const IndraEntArray *piea) {
   if (piea == NULL) {
     printf("<NULL>");
   }
@@ -272,12 +273,12 @@ void itaPrint(const IndraEntArray *piea) {
   printf("]");
 }
 
-void itaPrintLn(const IndraEntArray *piea) {
-  itaPrint(piea);
+void itArrayPrintLn(const IndraEntArray *piea) {
+  itArrayPrint(piea);
   printf("\n");
 }
 
-IndraEntArray *itCreateArray(IndraTypes type, unsigned long capacity) {
+IndraEntArray *itArrayCreate(IndraTypes type, unsigned long capacity) {
   IndraEntArray *piea = (IndraEntArray *)malloc(sizeof(IndraEntArray));
   memset(piea, 0, sizeof(IndraEntArray));
   piea->type = type;
@@ -292,7 +293,7 @@ IndraEntArray *itCreateArray(IndraTypes type, unsigned long capacity) {
   return piea;
 }
 
-void itDeleteArray(IndraEntArray *piea) {
+void itArrayDelete(IndraEntArray *piea) {
   if (piea == NULL) return;
   if (piea->ieArray == NULL) {
     free(piea);
@@ -308,10 +309,10 @@ void itDeleteArray(IndraEntArray *piea) {
   return;
 }
 
-IndraEntArray *itResizeArray(IndraEntArray **oldArray, unsigned long capacity) {
+IndraEntArray *itArrayResize(IndraEntArray **oldArray, unsigned long capacity) {
   if (oldArray == NULL) return NULL;
   if (capacity < (*oldArray)->count) return NULL;
-  IndraEntArray *pieaNew = itCreateArray((*oldArray)->type, capacity);
+  IndraEntArray *pieaNew = itArrayCreate((*oldArray)->type, capacity);
   if (pieaNew == NULL) return NULL;
   memcpy(pieaNew->ieArray, (*oldArray)->ieArray, (*oldArray)->count * sizeof(IndraEnt));
   pieaNew->count = (*oldArray)->count;
@@ -321,13 +322,13 @@ IndraEntArray *itResizeArray(IndraEntArray **oldArray, unsigned long capacity) {
   return pieaNew;
 }
 
-IndraEnt *itaGet(const IndraEntArray *piea, unsigned long index) {
+IndraEnt *itArrayGet(const IndraEntArray *piea, unsigned long index) {
   if (piea==NULL) return NULL;
   if (piea->count <= index) return NULL;
   return &piea->ieArray[index];
 }
 
-bool itaSet(IndraEntArray *piea, unsigned long index, IndraEnt *pie) {
+bool itArraySet(IndraEntArray *piea, unsigned long index, IndraEnt *pie) {
   if (piea == NULL) return false;
   if (pie == NULL) return false;
   if (piea->capacity <= index) return false;
@@ -342,13 +343,13 @@ bool itaSet(IndraEntArray *piea, unsigned long index, IndraEnt *pie) {
   return true;
 }
 
-bool itaSetGrow(IndraEntArray **piea, unsigned long index, IndraEnt *pie) {
+bool itArraySetGrow(IndraEntArray **piea, unsigned long index, IndraEnt *pie) {
   if (piea == NULL || *piea == NULL) return false;
   if (pie == NULL) return false;
   if ((*piea)->capacity <= index) {
     unsigned long new_capa = index * 3 / 2;
     //printf("Growing array to %lu\n", new_capa);
-    *piea = itResizeArray(piea, new_capa);
+    *piea = itArrayResize(piea, new_capa);
     if (*piea == NULL) return false;
   }
   if ((*piea)->type != pie->type) return false;
@@ -362,11 +363,11 @@ bool itaSetGrow(IndraEntArray **piea, unsigned long index, IndraEnt *pie) {
   return true;
 }
 
-bool itaAppend(IndraEntArray **piea, IndraEnt *pie) {
-  return itaSetGrow(piea, (*piea)->count, pie);
+bool itArrayAppend(IndraEntArray **piea, IndraEnt *pie) {
+  return itArraySetGrow(piea, (*piea)->count, pie);
 }
 
-bool itaDelete(IndraEntArray *piea, unsigned long index) {
+bool itArrayRemove(IndraEntArray *piea, unsigned long index) {
   if (piea==NULL) return false;
   if (piea->count <= index) return false;
   if (piea->ieArray[index].buf != NULL) free(piea->ieArray[index].buf);
@@ -377,7 +378,7 @@ bool itaDelete(IndraEntArray *piea, unsigned long index) {
   return true;
 }
 
-bool itaInsert(IndraEntArray *piea, unsigned long index, IndraEnt *pie) {
+bool itArrayInsert(IndraEntArray *piea, unsigned long index, IndraEnt *pie) {
   if (piea==NULL) return false;
   if (piea->count <= index) return false;
   if (piea->count+1 >= piea->capacity) return false;
@@ -388,3 +389,118 @@ bool itaInsert(IndraEntArray *piea, unsigned long index, IndraEnt *pie) {
   piea->count += 1;
   return true;
 }
+
+// ======== uHash-MAP ================================================
+typedef struct _u_hash_entry {
+  unsigned long keySize;
+  void *pKey;
+  unsigned long valueSize;
+  void *pValue;
+  unsigned long hash;
+} uHashEntry;
+
+typedef struct _u_hash {
+  unsigned long size;
+  unsigned long entries;
+  uHashEntry *pHE;
+} uHash;
+
+uHash* uHashCreate(unsigned long size);
+void uHashDelete(uHash *puHash);
+uHash* uHashGrow(uHash *puHash, unsigned long newSize);
+
+IndraEntMap *itCreateMap(IndraTypes keyType, IndraTypes valueType) {
+  IndraEntMap *piem = (IndraEntMap *)malloc(sizeof(IndraEntMap));
+  if (piem == NULL) return NULL;
+  piem->pHash = itArrayCreate(IT_ULONG, 4);
+  if (piem->pHash==NULL) {
+    free(piem);
+    return NULL;
+  }
+  piem->pKeys = itArrayCreate(keyType, 4);
+  if (piem->pKeys == NULL) {
+    free(piem->pHash);
+    free(piem);
+    return NULL;
+  }
+  piem->pValues = itArrayCreate(valueType, 4);
+  if (piem->pValues == NULL) {
+    free(piem->pHash);
+    free(piem->pKeys);
+    free(piem);
+    return NULL;
+  }
+  return piem;
+}
+
+void itDeleteMap(IndraEntMap *piem) {
+  if (piem == NULL) return;
+  itArrayDelete(piem->pHash);
+  itArrayDelete(piem->pKeys);
+  itArrayDelete(piem->pValues);
+  free(piem);
+}
+
+
+long uHashIndex(uHash *puHash, const void *pKey, unsigned long keySize) {
+  if (puHash->entries == 0) return -1;
+  unsigned long hash = (unsigned long)itCrc16Ccitt((const uint8_t *)pKey, keySize);
+  unsigned long a=0, d=0;
+  unsigned long b=puHash->entries-1;
+  while (b-a >= 1) {
+    d = (a+b)/2;  // a + (b-a)/2;  
+    if (puHash->pHE[a].hash==hash) break;
+    if (puHash->pHE[b].hash==hash) {
+      a=b;
+      break;
+    }
+    if (puHash->pHE[d].hash==hash) {
+      a=d;
+      break;
+    }
+    if (puHash->pHE[d].hash < hash) {
+      if (b==d) {
+        a=d;
+        break;
+      }
+      b = d;
+    } else {
+      if (a==d) break;
+      a = d;
+    }
+  }
+  while (puHash->pHE[a].hash == hash) {
+    if (puHash->pHE[a].keySize == keySize && !memcmp(puHash->pHE[a].pKey, pKey, keySize)) return a;
+    ++a;
+    if (a>=puHash->entries) break;
+  }  
+  return -a - 1;
+}
+
+void uHashInsert(uHash *puHash, const void *pKey, unsigned long keySize, const void *pValue, unsigned long valueSize) {
+  if (!puHash || !pKey || !keySize || !pValue || !valueSize) return;
+  if (puHash->size == puHash->entries) return;
+  long idx, ins_idx;
+  idx = uHashIndex(puHash, pKey, keySize);
+  if (idx>=0) {
+    // Existing key
+    ins_idx = idx;
+    free(puHash->pHE[ins_idx].pKey);
+    free(puHash->pHE[ins_idx].pValue);
+  } else {
+    // New key
+    ins_idx = -idx -1; 
+    for (unsigned long li=puHash->entries; li>ins_idx; li--) {
+      puHash->pHE[li] = puHash->pHE[li-1];
+    }
+    ++(puHash->entries);
+  }
+  puHash->pHE[ins_idx].hash = itCrc16Ccitt((const uint8_t *)pKey, keySize);
+  puHash->pHE[ins_idx].pKey = malloc(keySize);
+  memcpy(puHash->pHE[ins_idx].pKey, pKey, keySize);
+  puHash->pHE[ins_idx].keySize = keySize;
+  puHash->pHE[ins_idx].pValue = malloc(valueSize);
+  memcpy(puHash->pHE[ins_idx].pValue, pValue, valueSize);
+  puHash->pHE[ins_idx].valueSize = valueSize;
+}
+

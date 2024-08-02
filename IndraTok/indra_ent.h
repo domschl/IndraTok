@@ -17,6 +17,12 @@ typedef struct _indra_ent_array {
   unsigned long count;
 } IndraEntArray;
 
+typedef struct _indra_ent_map {
+  IndraEntArray *pHash;
+  IndraEntArray *pKeys;
+  IndraEntArray *pValues;
+} IndraEntMap;
+
 void itDelete(IndraEnt *pie);
 IndraEnt *itCreateChar(char c);
 IndraEnt *itCreateByte(unsigned char byte);
@@ -31,17 +37,17 @@ IndraEnt *itCreateULong(unsigned long ul);
 IndraEnt *itCreateFloat(float f);
 IndraEnt *itCreateDouble(double df);
 
-IndraEntArray *itCreateArray(IndraTypes type, unsigned long capacity);
-void itDeleteArray(IndraEntArray *piea);
-IndraEntArray *itResizeArray(IndraEntArray **, unsigned long capacity);
-bool itaSet(IndraEntArray *piea, unsigned long index, IndraEnt *pie);
-IndraEnt *itaGet(const IndraEntArray *piea, unsigned long index);
-bool itaSetGrow(IndraEntArray **piea, unsigned long index, IndraEnt *pie);
-bool itaAppend(IndraEntArray **piea, IndraEnt *pie);
-bool itaDelete(IndraEntArray *piea, unsigned long index);
-bool itaInsert(IndraEntArray *piea, unsigned long index, IndraEnt *pie);
+IndraEntArray *itArrayCreate(IndraTypes type, unsigned long capacity);
+void itArrayDelete(IndraEntArray *piea);
+IndraEntArray *itArrayResize(IndraEntArray **, unsigned long capacity);
+bool itArraySet(IndraEntArray *piea, unsigned long index, IndraEnt *pie);
+IndraEnt *itArrayGet(const IndraEntArray *piea, unsigned long index);
+bool itArraySetGrow(IndraEntArray **piea, unsigned long index, IndraEnt *pie);
+bool itArrayAppend(IndraEntArray **piea, IndraEnt *pie);
+bool itArrayRemove(IndraEntArray *piea, unsigned long index);
+bool itArrayInsert(IndraEntArray *piea, unsigned long index, IndraEnt *pie);
 
 void itPrint(const IndraEnt *pie);
 void itPrintLn(const IndraEnt *pie);
-void itaPrint(const IndraEntArray *piea);
-void itaPrintLn(const IndraEntArray *piea);
+void itArrayPrint(const IndraEntArray *piea);
+void itArrayPrintLn(const IndraEntArray *piea);

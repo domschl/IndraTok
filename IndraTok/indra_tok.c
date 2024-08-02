@@ -268,7 +268,7 @@ IndraEntArray *stringSplitUtf8(const IndraEnt *source, const IndraEnt *token) {
   if (source->type != IT_STRING || token->type != IT_STRING) return NULL;
 
   bool insertEmpty = true;
-  IndraEntArray *pParts = itCreateArray(IT_STRING, 4);  // itaAppend() will grow array as needed.
+  IndraEntArray *pParts = itArrayCreate(IT_STRING, 4);  // itaAppend() will grow array as needed.
   unsigned int l=0;
   unsigned long cnt=0;
   long fnd = -1;
@@ -279,7 +279,7 @@ IndraEntArray *stringSplitUtf8(const IndraEnt *source, const IndraEnt *token) {
       if (fnd - part_start > 0 || insertEmpty) {
         prt = itCreateStringFromSlice(source, part_start, fnd-part_start);
         //printf("tok: "); itPrintLn(prt);
-        itaAppend(&pParts, prt);
+        itArrayAppend(&pParts, prt);
         itDelete(prt);  // Note: prt->buf has been transferred into the array, prt became IT_NIL by Append. 
       }
       cnt += 1;
@@ -308,7 +308,7 @@ IndraEntArray *stringSplitUtf8(const IndraEnt *source, const IndraEnt *token) {
     if (fnd - part_start > 0 || insertEmpty) {
       prt = itCreateStringFromSlice(source, part_start, fnd-part_start);
       //printf("tok: "); itPrintLn(prt);
-      itaAppend(&pParts, prt);
+      itArrayAppend(&pParts, prt);
       itDelete(prt);  // Note: prt->buf has been transferred into the array, prt became IT_NIL by Append. 
     }
     cnt += 1;
@@ -317,7 +317,7 @@ IndraEntArray *stringSplitUtf8(const IndraEnt *source, const IndraEnt *token) {
     if (fnd - part_start > 0 || insertEmpty) {
       prt = itCreateStringFromSlice(source, part_start, source->len-part_start);
       //printf("tok: "); itPrintLn(prt);
-      itaAppend(&pParts, prt);
+      itArrayAppend(&pParts, prt);
       itDelete(prt);  // Note: prt->buf has been transferred into the array, prt became IT_NIL by Append. 
     }
   }
