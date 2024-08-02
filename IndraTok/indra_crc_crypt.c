@@ -40,12 +40,22 @@ uint16_t itCrc16Ccitt(const uint8_t *data_p, unsigned long length) {
   return (crc);
 }
 
-#define IT_SIMPLE_MULT 137
+#define IT_SIMPLE_CONST 0x47218408
+#define IT_SIMPLE_CONST2 0x4329567584745642
+#define IT_SIMPLE_MULT 31
 
 unsigned long itSimpleHash(unsigned char *buf, unsigned long length) {
-  unsigned long hash = 0;
+  unsigned long hash = 0xffffffffffffffff;
+  unsigned long data;
   for (unsigned long i=0; i<length; i++) {
-    hash = IT_SIMPLE_MULT * hash + buf[i];
+    data = 0;
+    data |= (unsigned long)buf[i];
+    if (hash & 1) data |= (unsigned long)buf[i] << 8;
+    if (hash & 2) data |= (unsigned long)buf[i] << 16;
+    if (hash & 4) data |= (unsigned long)buf[i] << 32;
+    if (hash & 8) data |= (unsigned long)buf[i] << 40;
+    if (hash & 16) data |= (unsigned long)buf[i] << 48;
+    hash = (hash * IT_SIMPLE_MULT)  + data;
   }
   return hash;
 }
