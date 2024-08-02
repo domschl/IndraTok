@@ -103,7 +103,7 @@ IndraEnt *itCreateStringFromSlice(const IndraEnt *pieByteString, unsigned long s
     free(pie);
     return NULL;
   }
-  memcpy(pie->buf, &(pieByteString->buf[sliceStart]), sliceLength);
+  memcpy(pie->buf, &(((char *)(pieByteString->buf))[sliceStart]), sliceLength);
   ((char *)(pie->buf))[sliceLength] = 0;
   pie->type = IT_STRING;
   pie->len = sliceLength;
