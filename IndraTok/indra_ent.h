@@ -23,6 +23,7 @@ IndraEnt *itCreateByte(unsigned char byte);
 IndraEnt *itCreateBytes(const unsigned char bytes[], unsigned long len);
 IndraEnt *itCreateString(const char str[]);
 IndraEnt *itCreateStringByLength(unsigned long strLength);
+IndraEnt *itCreateStringFromSlice(const IndraEnt *bufByteString, unsigned long bufSliceStart, unsigned long bufSliceLength);
 IndraEnt *itCreateInt(int i);
 IndraEnt *itCreateUInt(unsigned int ui);
 IndraEnt *itCreateLong(long l);
@@ -40,5 +41,7 @@ bool itaAppend(IndraEntArray **piea, IndraEnt *pie);
 bool itaDelete(IndraEntArray *piea, unsigned long index);
 bool itaInsert(IndraEntArray *piea, unsigned long index, IndraEnt *pie);
 
-void itPrint(IndraEnt *pie);
-void itPrintLn(IndraEnt *pie);
+void itPrint(const IndraEnt *pie);
+void itPrintLn(const IndraEnt *pie);
+void itaPrint(const IndraEntArray *piea);
+void itaPrintLn(const IndraEntArray *piea);

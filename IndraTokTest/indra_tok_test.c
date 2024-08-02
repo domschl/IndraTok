@@ -24,6 +24,19 @@ typedef struct _char_conv_test {
 
 CharConvTest test1[] = {{ "Smörö", 5}, {"རྒྱུད་", 6}, {"", 0}, {"𐍈", 1}, {"😁", 1}};
 
+typedef struct _tok_parse_test {
+  char *str;
+  char *tok;
+} TokParseTest;
+
+TokParseTest test2[] = {{"asdfjiefjiwjef", "asef"}, {"aaaa", "a"},
+{"a", "a"}, {"", "a"}, {"a" ,""},
+{"abcabcabc", "ab"}, {"abcabc", "abc"},
+{"gulpabbagulpbubugulp", "gulp"},
+{"abbagulpbubugulp", "gulp"},
+{"gulpabbagulpbubu", "gulp"},
+};
+
 int main(int argc, char *argv[]) {
   unsigned int errs = 0, oks=0;
   IndraEnt *a=NULL, *b=NULL, *c=NULL;
@@ -198,11 +211,23 @@ int main(int argc, char *argv[]) {
   a = itCreateString("for|you|more");
   IndraEntArray *ar;
   b = itCreateString("|");
-  stringSplitUtf8(a, &ar, b);
-
+  ar = stringSplitUtf8(a, b);
+  itaPrintLn(ar);
+  
   itDelete(a);
   itDelete(b);
   itDeleteArray(ar);
+
+  for (unsigned long i=0; i<sizeof(test2)/sizeof(TokParseTest); i++) {
+    printf("Tokparse >%s< token >%s<\n", test2[i].str, test2[i].tok);
+    a = itCreateString(test2[i].str);
+    b = itCreateString(test2[i].tok);
+    ar = stringSplitUtf8(a, b);
+    itaPrintLn(ar);
+    itDelete(a);
+    itDelete(b);
+    itDeleteArray(ar);    
+  }
   
   printf("\nErrors: %u, Oks: %u\n", errs, oks);
   return errs;

@@ -262,10 +262,24 @@ void stringPartUtf8(const IndraEnt *source, IndraEnt **ppPart, unsigned int star
   }
 }
 
-long stringSplitUtf8(const IndraEnt *source, IndraEntArray **ppParts, const IndraEnt *token) {
-  if (token==NULL) return -1;
-  if (source==NULL) return -1;
-  if (source->type != IT_STRING || token->type != IT_STRING) return false;
+// copy a buffer slice to a string and at \0 at string end
+bool copyBufSliceToString(const unsigned char *buf, unsigned long bufSliceStart, unsigned long bufSliceLen, char* destStr, unsigned long destStrLen) {
+  if (bufSliceLen+1 > destStrLen) return false;
+  memcpy(destStr, &buf[bufSliceStart], bufSliceLen);
+  destStr[bufSliceLen]=0;
+  return true;
+}
+
+void _insertPart(IndraEntArray **ppParts, const IndraEnt *source, unsigned long start, unsigned long length) {
+}
+
+IndraEntArray *stringSplitUtf8(const IndraEnt *source, const IndraEnt *token) {
+  if (token==NULL) return NULL;
+  if (source==NULL) return NULL;
+  if (source->type != IT_STRING || token->type != IT_STRING) return NULL;
+
+  bool insertEmpty = true;
+  IndraEntArray *pParts = itCreateArray(IT_STRING, 4);
   unsigned int l=0;
   unsigned long cnt=0;
   long fnd = -1;
@@ -273,19 +287,15 @@ long stringSplitUtf8(const IndraEnt *source, IndraEntArray **ppParts, const Indr
   unsigned long part_start = 0;
   for (unsigned long s=0; s<source->len; s++) {
     if (l == token->len) {
-      if (cnt==0) {
-        (*ppParts) = itCreateArray(IT_STRING, 4);
+      if (fnd - part_start > 0 || insertEmpty) {
+        prt = itCreateStringFromSlice(source, part_start, fnd-part_start);
+        //printf("tok: "); itPrintLn(prt);
+        itaAppend(&pParts, prt);
       }
-      char *s_tmp = (char *)malloc(fnd-part_start+1);
-      memcpy(s_tmp, &source[fnd], fnd-part_start);
-      s_tmp[fnd-part_start]=0;
-      prt = itCreateString(s_tmp);
-      free(s_tmp);
-      itaAppend(ppParts, prt);
       cnt += 1;
-      printf("Found at %ld: %ld\n", fnd, cnt);
       l = 0;
       if (((unsigned char *)source->buf)[s] == ((unsigned char *)token->buf)[l]) {
+        part_start = s;
         fnd = s;
         l += 1;
         continue;
@@ -297,7 +307,7 @@ long stringSplitUtf8(const IndraEnt *source, IndraEntArray **ppParts, const Indr
     }
     if (((unsigned char *)source->buf)[s] != ((unsigned char *)token->buf)[l]) {
       l = 0;
-      part_start = fnd;
+      if (fnd> -1) part_start = fnd;
       fnd = -1;
       continue;
     }
@@ -305,10 +315,21 @@ long stringSplitUtf8(const IndraEnt *source, IndraEntArray **ppParts, const Indr
     l += 1;
   }
   if (l >= token->len) {
+    if (fnd - part_start > 0 || insertEmpty) {
+      prt = itCreateStringFromSlice(source, part_start, fnd-part_start);
+      //printf("tok: "); itPrintLn(prt);
+      itaAppend(&pParts, prt);
+    }
     cnt += 1;
-    printf("Final found at %ld end: %ld\n", fnd, cnt);
+    //printf("Final found at %ld end: %ld\n", fnd, cnt);
+  } else {
+    if (fnd - part_start > 0 || insertEmpty) {
+      prt = itCreateStringFromSlice(source, part_start, source->len-part_start);
+      //printf("tok: "); itPrintLn(prt);
+      itaAppend(&pParts, prt);
+    }
   }
-  return cnt;
+  return pParts;
 }
 
 

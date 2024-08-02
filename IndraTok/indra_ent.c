@@ -91,6 +91,25 @@ IndraEnt *itCreateStringByLength(unsigned long strLength) {
   return pie;
 }
 
+IndraEnt *itCreateStringFromSlice(const IndraEnt *pieByteString, unsigned long sliceStart, unsigned long sliceLength) {
+  if (!pieByteString) return NULL;
+  if (pieByteString->type != IT_STRING && pieByteString->type != IT_BYTES) return NULL;
+  if (sliceStart + sliceLength > pieByteString->len) return NULL;
+  IndraEnt *pie = (IndraEnt *)malloc(sizeof(IndraEnt));
+  if (!pie) return NULL;
+  memset(pie, 0, sizeof(IndraEnt));
+  pie->buf=malloc(sliceLength + 1);
+  if (!pie->buf) {
+    free(pie);
+    return NULL;
+  }
+  memcpy(pie->buf, &(pieByteString->buf[sliceStart]), sliceLength);
+  ((char *)(pie->buf))[sliceLength] = 0;
+  pie->type = IT_STRING;
+  pie->len = sliceLength;
+  return pie;
+}
+
 IndraEnt *itCreateInt(int i) {
   IndraEnt *pie = (IndraEnt *)malloc(sizeof(IndraEnt));
   if (!pie) return NULL;
@@ -181,7 +200,7 @@ IndraEnt *itCreateDouble(double df) {
   return pie;
 }
 
-void itPrint(IndraEnt *pie) {
+void itPrint(const IndraEnt *pie) {
   if (pie == NULL) {
     printf("<NULL>");
     return;
@@ -232,8 +251,29 @@ void itPrint(IndraEnt *pie) {
   }
 }
 
-void itPrintLn(IndraEnt *pie) {
+void itPrintLn(const IndraEnt *pie) {
   itPrint(pie);
+  printf("\n");
+}
+
+void itaPrint(const IndraEntArray *piea) {
+  if (piea == NULL) {
+    printf("<NULL>");
+  }
+  printf("[");
+  bool first=true;
+  for (unsigned long i=0; i<piea->count; i++) {
+    if (first) first=false;
+    else printf(", ");
+    if (piea->type == IT_STRING) printf("\"");
+    itPrint(&(piea->ieArray[i]));
+    if (piea->type == IT_STRING) printf("\"");
+  }
+  printf("]");
+}
+
+void itaPrintLn(const IndraEntArray *piea) {
+  itaPrint(piea);
   printf("\n");
 }
 
@@ -245,7 +285,7 @@ IndraEntArray *itCreateArray(IndraTypes type, unsigned long capacity) {
   if (capacity>0) {
     piea->ieArray = (IndraEnt *)malloc(sizeof(IndraEnt)*capacity);
     for (unsigned long i=0; i<capacity; i++) {
-      memset(piea->ieArray[i].buf, 0, sizeof(IndraEnt));
+      memset(&piea->ieArray[i], 0, sizeof(IndraEnt));
       piea->ieArray[i].type = type;
     }
   }
