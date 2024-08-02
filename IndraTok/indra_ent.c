@@ -372,9 +372,10 @@ bool itArrayRemove(IndraEntArray *piea, unsigned long index) {
   if (piea==NULL) return false;
   if (piea->count <= index) return false;
   if (piea->ieArray[index].buf != NULL) free(piea->ieArray[index].buf);
-  for (unsigned long i=index; i<piea->count-1; i++) {
-    piea->ieArray[i] = piea->ieArray[i+1];
-  }
+  memmove(&piea->ieArray[index],&piea->ieArray[index+1], (piea->count - index -1)*sizeof(IndraEnt)); 
+  //for (unsigned long i=index; i<piea->count-1; i++) {
+  //  piea->ieArray[i] = piea->ieArray[i+1];
+  //}
   piea->count -= 1;
   return true;
 }
@@ -397,9 +398,10 @@ bool itArrayInsert(IndraEntArray **ppiea, unsigned long index, IndraEnt *pie) {
     *ppiea = itArrayResize(ppiea, new_capa);
     if (*ppiea == NULL) return false;
   }
-  for (unsigned long i=(*ppiea)->count; i>index; i--) {
-    (*ppiea)->ieArray[i] = (*ppiea)->ieArray[i-1];
-  }
+  memmove(&(*ppiea)->ieArray[index+1], &(*ppiea)->ieArray[index], ((*ppiea)->count - index)*sizeof(IndraEnt));
+  //for (unsigned long i=(*ppiea)->count; i>index; i--) {
+  //  (*ppiea)->ieArray[i] = (*ppiea)->ieArray[i-1];
+  //}
   (*ppiea)->ieArray[index] = *pie;
   pie->buf = NULL;
   (*ppiea)->count += 1;
@@ -407,9 +409,10 @@ bool itArrayInsert(IndraEntArray **ppiea, unsigned long index, IndraEnt *pie) {
 }
 
 // ======== Hash-Map ================================================
-IndraEntMap *itMapCreate(IndraTypes keyType, IndraTypes valueType) {
+IndraEntMap *itMapCreateHash(IndraTypes keyType, IndraTypes valueType, IndraHashTypes hashType) {
   IndraEntMap *piem = (IndraEntMap *)malloc(sizeof(IndraEntMap));
   if (piem == NULL) return NULL;
+  piem->hashType = hashType;
   piem->pHash = itArrayCreate(IT_ULONG, 4);
   if (piem->pHash==NULL) {
     free(piem);
@@ -431,6 +434,10 @@ IndraEntMap *itMapCreate(IndraTypes keyType, IndraTypes valueType) {
   return piem;
 }
 
+IndraEntMap *itMapCreate(IndraTypes keyType, IndraTypes valueType) {
+  return itMapCreateHash(keyType, valueType, IT_HASH_SIMPLE);
+}
+
 void itMapDelete(IndraEntMap *piem) {
   if (piem == NULL) return;
   itArrayDelete(piem->pHash);
@@ -439,10 +446,23 @@ void itMapDelete(IndraEntMap *piem) {
   free(piem);
 }
 
+unsigned long _itGetHash(IndraHashTypes hashType, unsigned char *buf, unsigned long len) {
+  unsigned long hash;
+  switch (hashType) {
+  case IT_HASH_CRC16:
+    hash = (unsigned long)itCrc16Ccitt(buf, len);
+    break;
+  case IT_HASH_SIMPLE:
+    hash = itSimpleHash(buf, len);
+    break;
+  }
+  return hash;
+}
+
 // Return index of 'left-most' matching hash, if hash is found,
 // If index < 0, Insertion-point would be at -index -1 (Insertion point can be beyond current len!)
 long _itMapHashIndexGet(IndraEntMap *piem, IndraEnt *pKey) {
-  unsigned long hash = (unsigned long)itCrc16Ccitt(pKey->buf, pKey->len);
+  unsigned long hash = _itGetHash(piem->hashType, pKey->buf, pKey->len);
   unsigned long n = piem->pHash->count;
   unsigned long l = 0;
   unsigned long r = n;
@@ -511,9 +531,7 @@ bool itMapSet(IndraEntMap *piem, IndraEnt *pKey, IndraEnt *pValue) {
     piem->pValues->ieArray[index] = *pValue;
     pValue->buf = NULL;
   } else {
-    unsigned long hash = (unsigned long)itCrc16Ccitt(pKey->buf, pKey->len);
-    printf("Hash-array: "); itArrayPrintLn(piem->pHash);
-    printf("Insertion at: %lu, hash: %lu\n", insertionIndex, hash);
+    unsigned long hash = _itGetHash(piem->hashType, pKey->buf, pKey->len);
     IndraEnt *pHash = itCreateULong(hash);
     itArrayInsert(&(piem->pHash), insertionIndex, pHash);
     itDelete(pHash);

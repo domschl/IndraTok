@@ -264,18 +264,51 @@ int main(int argc, char *argv[]) {
   itDelete(a);
   itDelete(b);
 
+  printf("Create more:\n");
   for (unsigned long i=0; i<sizeof(test2)/sizeof(TokParseTest); i++) {
-    printf("Tokparse >%s< token >%s<\n", test2[i].str, test2[i].tok);
     a = itCreateString(test2[i].str);
     b = itCreateString(test2[i].tok);
     itMapSet(piem, a, b);
     itDelete(a);
     itDelete(b);
-    itMapPrint(piem);
   }
+  itMapPrint(piem);
+  printf("Delete them:\n");
+  for (unsigned long i=0; i<sizeof(test2)/sizeof(TokParseTest); i++) {
+    a = itCreateString(test2[i].str);
+    itMapRemove(piem, a);
+    itDelete(a);
+  }
+  itMapPrint(piem);
   
   itMapDelete(piem);
+
+
+
+  unsigned long N=10000;
+  printf("Creating large map N=%lu:\n", N);
+  piem = itMapCreate(IT_ULONG, IT_ULONG);
+  for (unsigned long i=0; i<N; i++) {
+    a = itCreateULong(i);
+    b = itCreateULong(i);
+    itMapSet(piem, a, b);
+    itDelete(a);
+    itDelete(b);
+  }
+  printf("Checking large map N=%lu:\n", N);
+  for (unsigned long i=0; i<N; i++) {
+    a = itCreateULong(i);
+    b = itMapGet(piem, a);
+    if (b && *(long *)b->buf == i) {
+      oks += 1;
+    } else {
+      errs += 1;
+    }
+    itDelete(a);
+  }
   
+
+  itMapDelete(piem);
   printf("\nErrors: %u, Oks: %u\n", errs, oks);
   return errs;
 }

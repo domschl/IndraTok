@@ -17,7 +17,9 @@ typedef struct _indra_ent_array {
   unsigned long count;
 } IndraEntArray;
 
+typedef enum _indra_hash_type {IT_HASH_CRC16, IT_HASH_SIMPLE} IndraHashTypes;
 typedef struct _indra_ent_map {
+  IndraHashTypes hashType;
   IndraEntArray *pHash;
   IndraEntArray *pKeys;
   IndraEntArray *pValues;
@@ -52,6 +54,7 @@ void itPrintLn(const IndraEnt *pie);
 void itArrayPrint(const IndraEntArray *piea);
 void itArrayPrintLn(const IndraEntArray *piea);
 
+IndraEntMap *itMapCreateHash(IndraTypes keyType, IndraTypes valueType, IndraHashTypes);
 IndraEntMap *itMapCreate(IndraTypes keyType, IndraTypes valueType);
 void itMapDelete(IndraEntMap *piem);
 long _itMapHashIndexGet(IndraEntMap *piem, IndraEnt *pKey);

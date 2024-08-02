@@ -40,6 +40,17 @@ uint16_t itCrc16Ccitt(const uint8_t *data_p, unsigned long length) {
   return (crc);
 }
 
+#define IT_SIMPLE_MULT 137
+
+unsigned long itSimpleHash(unsigned char *buf, unsigned long length) {
+  unsigned long hash = 0;
+  for (unsigned long i=0; i<length; i++) {
+    hash = IT_SIMPLE_MULT * hash + buf[i];
+  }
+  return hash;
+}
+
+
 // ======== XX-TEA ===================================================
 // Source: http://en.wikipedia.org/wiki/XXTEA
 // According to Needham and Wheeler:
