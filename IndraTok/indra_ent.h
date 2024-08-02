@@ -45,9 +45,19 @@ IndraEnt *itArrayGet(const IndraEntArray *piea, unsigned long index);
 bool itArraySetGrow(IndraEntArray **piea, unsigned long index, IndraEnt *pie);
 bool itArrayAppend(IndraEntArray **piea, IndraEnt *pie);
 bool itArrayRemove(IndraEntArray *piea, unsigned long index);
-bool itArrayInsert(IndraEntArray *piea, unsigned long index, IndraEnt *pie);
+bool itArrayInsert(IndraEntArray **piea, unsigned long index, IndraEnt *pie);
 
 void itPrint(const IndraEnt *pie);
 void itPrintLn(const IndraEnt *pie);
 void itArrayPrint(const IndraEntArray *piea);
 void itArrayPrintLn(const IndraEntArray *piea);
+
+IndraEntMap *itMapCreate(IndraTypes keyType, IndraTypes valueType);
+void itMapDelete(IndraEntMap *piem);
+long _itMapHashIndexGet(IndraEntMap *piem, IndraEnt *pKey);
+long _itMapIndexGet(IndraEntMap *piem, IndraEnt *pKey);
+bool itMapSet(IndraEntMap *piem, IndraEnt *pKey, IndraEnt *pValue);
+IndraEnt* itMapGet(IndraEntMap *piem, IndraEnt *pKey);
+bool itMapExists(IndraEntMap *piem, IndraEnt *pKey);
+bool itMapRemove(IndraEntMap *piem, IndraEnt *pKey);
+void itMapPrint(IndraEntMap *piem);

@@ -228,6 +228,34 @@ int main(int argc, char *argv[]) {
     itDelete(b);
     itArrayDelete(ar);    
   }
+
+  printf("\nMaps:\n");
+  IndraEntMap *piem = itMapCreate(IT_STRING, IT_STRING);
+  a = itCreateString("Hello");
+  b = itCreateString("World");
+  itMapSet(piem, a, b); // Bad API, delete/moves a, b
+  itDelete(a);
+  itMapPrint(piem);
+  a = itCreateString("Hello");
+  c = itMapGet(piem, a);
+  printf("MapGet: "); itPrintLn(c);
+  itDelete(a);
+  itDelete(b);
+
+  a = itCreateString("Hello");
+  b = itCreateString("Universe");
+  itMapSet(piem, a, b); // Bad API, delete/moves a, b
+  itDelete(a);
+  itMapPrint(piem);
+  a = itCreateString("Hello");
+  c = itMapGet(piem, a);
+  printf("MapGet: "); itPrintLn(c);
+  itDelete(a);
+  itDelete(b);
+
+
+  
+  itMapDelete(piem);
   
   printf("\nErrors: %u, Oks: %u\n", errs, oks);
   return errs;

@@ -257,6 +257,7 @@ void itPrintLn(const IndraEnt *pie) {
   printf("\n");
 }
 
+// ======== Arrays ==================================================
 void itArrayPrint(const IndraEntArray *piea) {
   if (piea == NULL) {
     printf("<NULL>");
@@ -378,38 +379,28 @@ bool itArrayRemove(IndraEntArray *piea, unsigned long index) {
   return true;
 }
 
-bool itArrayInsert(IndraEntArray *piea, unsigned long index, IndraEnt *pie) {
-  if (piea==NULL) return false;
-  if (piea->count <= index) return false;
-  if (piea->count+1 >= piea->capacity) return false;
-  for (unsigned long i=piea->count; i>index; i--) {
-    piea->ieArray[i] = piea->ieArray[i-1];
+bool itArrayInsert(IndraEntArray **ppiea, unsigned long index, IndraEnt *pie) {
+  if (ppiea==NULL || *ppiea==NULL) return false;
+  if ((*ppiea)->count <= index) {
+    return itArraySetGrow(ppiea, index, pie);
   }
-  piea->ieArray[index] = *pie;
-  piea->count += 1;
+  if ((*ppiea)->capacity <= index) {
+    unsigned long new_capa = index * 3 / 2;
+    //printf("Growing array to %lu\n", new_capa);
+    *ppiea = itArrayResize(ppiea, new_capa);
+    if (*ppiea == NULL) return false;
+  }
+  if ((*ppiea)->count+1 >= (*ppiea)->capacity) return false;
+  for (unsigned long i=(*ppiea)->count; i>index; i--) {
+    (*ppiea)->ieArray[i] = (*ppiea)->ieArray[i-1];
+  }
+  (*ppiea)->ieArray[index] = *pie;
+  (*ppiea)->count += 1;
   return true;
 }
 
-// ======== uHash-MAP ================================================
-typedef struct _u_hash_entry {
-  unsigned long keySize;
-  void *pKey;
-  unsigned long valueSize;
-  void *pValue;
-  unsigned long hash;
-} uHashEntry;
-
-typedef struct _u_hash {
-  unsigned long size;
-  unsigned long entries;
-  uHashEntry *pHE;
-} uHash;
-
-uHash* uHashCreate(unsigned long size);
-void uHashDelete(uHash *puHash);
-uHash* uHashGrow(uHash *puHash, unsigned long newSize);
-
-IndraEntMap *itCreateMap(IndraTypes keyType, IndraTypes valueType) {
+// ======== Hash-Map ================================================
+IndraEntMap *itMapCreate(IndraTypes keyType, IndraTypes valueType) {
   IndraEntMap *piem = (IndraEntMap *)malloc(sizeof(IndraEntMap));
   if (piem == NULL) return NULL;
   piem->pHash = itArrayCreate(IT_ULONG, 4);
@@ -433,7 +424,7 @@ IndraEntMap *itCreateMap(IndraTypes keyType, IndraTypes valueType) {
   return piem;
 }
 
-void itDeleteMap(IndraEntMap *piem) {
+void itMapDelete(IndraEntMap *piem) {
   if (piem == NULL) return;
   itArrayDelete(piem->pHash);
   itArrayDelete(piem->pKeys);
@@ -441,66 +432,116 @@ void itDeleteMap(IndraEntMap *piem) {
   free(piem);
 }
 
-
-long uHashIndex(uHash *puHash, const void *pKey, unsigned long keySize) {
-  if (puHash->entries == 0) return -1;
-  unsigned long hash = (unsigned long)itCrc16Ccitt((const uint8_t *)pKey, keySize);
-  unsigned long a=0, d=0;
-  unsigned long b=puHash->entries-1;
-  while (b-a >= 1) {
-    d = (a+b)/2;  // a + (b-a)/2;  
-    if (puHash->pHE[a].hash==hash) break;
-    if (puHash->pHE[b].hash==hash) {
-      a=b;
-      break;
-    }
-    if (puHash->pHE[d].hash==hash) {
-      a=d;
-      break;
-    }
-    if (puHash->pHE[d].hash < hash) {
-      if (b==d) {
-        a=d;
-        break;
+// Return index of 'left-most' matching hash, if hash is found,
+// If index < 0, Insertion-point would be at -index -1 (Insertion point can be beyond current len!)
+long _itMapHashIndexGet(IndraEntMap *piem, IndraEnt *pKey) {
+  unsigned long hash = (unsigned long)itCrc16Ccitt(pKey->buf, pKey->len);
+  unsigned long n = piem->pHash->count;
+  unsigned long l = 0;
+  unsigned long r = n;
+  unsigned long *pCurHash;
+  unsigned long m = -1;
+  while (l<r) {
+    m = (l+r)/2;
+    pCurHash = piem->pHash->ieArray[m].buf;
+    if (pCurHash != NULL) {
+      if (*pCurHash < hash) {
+        l = m+1;
+      } else {
+        r = m;
       }
-      b = d;
     } else {
-      if (a==d) break;
-      a = d;
+      l=0;
+      break;
     }
   }
-  while (puHash->pHE[a].hash == hash) {
-    if (puHash->pHE[a].keySize == keySize && !memcmp(puHash->pHE[a].pKey, pKey, keySize)) return a;
-    ++a;
-    if (a>=puHash->entries) break;
-  }  
-  return -a - 1;
-}
-
-void uHashInsert(uHash *puHash, const void *pKey, unsigned long keySize, const void *pValue, unsigned long valueSize) {
-  if (!puHash || !pKey || !keySize || !pValue || !valueSize) return;
-  if (puHash->size == puHash->entries) return;
-  long idx, ins_idx;
-  idx = uHashIndex(puHash, pKey, keySize);
-  if (idx>=0) {
-    // Existing key
-    ins_idx = idx;
-    free(puHash->pHE[ins_idx].pKey);
-    free(puHash->pHE[ins_idx].pValue);
+  pCurHash = piem->pHash->ieArray[l].buf;
+  if (pCurHash != NULL) {
+    if (l>=n ||  *pCurHash != hash) {
+      return -l-1;  // Not found, return negative insertion point. Insert at -l-1.
+    }
   } else {
-    // New key
-    ins_idx = -idx -1; 
-    for (unsigned long li=puHash->entries; li>ins_idx; li--) {
-      puHash->pHE[li] = puHash->pHE[li-1];
-    }
-    ++(puHash->entries);
+    l = -1;
   }
-  puHash->pHE[ins_idx].hash = itCrc16Ccitt((const uint8_t *)pKey, keySize);
-  puHash->pHE[ins_idx].pKey = malloc(keySize);
-  memcpy(puHash->pHE[ins_idx].pKey, pKey, keySize);
-  puHash->pHE[ins_idx].keySize = keySize;
-  puHash->pHE[ins_idx].pValue = malloc(valueSize);
-  memcpy(puHash->pHE[ins_idx].pValue, pValue, valueSize);
-  puHash->pHE[ins_idx].valueSize = valueSize;
+  return l;
 }
 
+long _itMapIndexGet(IndraEntMap *piem, IndraEnt *pKey) {
+  long index = _itMapHashIndexGet(piem, pKey);
+  if (index >= 0) { // Key might exist
+    unsigned long curInd = index;
+    while (curInd<piem->pKeys->count && piem->pKeys->ieArray[curInd].len == pKey->len) {
+      if (!memcmp(piem->pKeys->ieArray[curInd].buf, pKey->buf, pKey->len)) {
+        return curInd;
+      } else {
+        curInd += 1;
+      }
+    }
+  }
+  return -1; 
+}
+
+bool itMapSet(IndraEntMap *piem, IndraEnt *pKey, IndraEnt *pValue) {
+  if (piem==NULL || pKey==NULL || pValue==NULL) return false;
+  long index = _itMapHashIndexGet(piem, pKey);
+  bool exists = false;
+  long insertionIndex= -1;
+  if (index >= 0) { // Key might exist
+    unsigned long curInd = index;
+    insertionIndex = index;
+    while (curInd<piem->pKeys->count && piem->pKeys->ieArray[curInd].len == pKey->len) {
+      if (!memcmp(piem->pKeys->ieArray[curInd].buf, pKey->buf, pKey->len)) {
+        exists = true;
+        index = curInd;
+        break;
+      } else {
+        curInd += 1;
+      }
+    }
+  } else {
+    insertionIndex = -index - 1;
+  }
+  if (exists) {
+    free(piem->pValues->ieArray[index].buf);
+    piem->pValues->ieArray[index] = *pValue;
+    pValue->buf = NULL;
+  } else {
+    IndraEnt *pHash = itCreateULong((unsigned long)itCrc16Ccitt(pKey->buf, pKey->len));
+    itArrayInsert(&(piem->pHash), insertionIndex, pHash);
+    itDelete(pHash);
+    itArrayInsert(&(piem->pKeys), insertionIndex, pKey);
+    itArrayInsert(&(piem->pValues), insertionIndex, pValue);
+  }
+  return true;
+}
+
+IndraEnt* itMapGet(IndraEntMap *piem, IndraEnt *pKey) {
+  long index = _itMapIndexGet(piem, pKey);
+  if (index < 0) return NULL;
+  return &(piem->pValues->ieArray[index]);
+}
+
+bool itMapExists(IndraEntMap *piem, IndraEnt *pKey) {
+  if (_itMapIndexGet(piem, pKey) >= 0) return true;
+  return false;
+}
+
+bool itMapRemove(IndraEntMap *piem, IndraEnt *pKey) {
+  long index = _itMapIndexGet(piem, pKey);
+  if (index < 0) return false;
+  itArrayRemove(piem->pHash, index);
+  itArrayRemove(piem->pKeys, index);
+  itArrayRemove(piem->pValues, index);
+  return false;
+}
+
+void itMapPrint(IndraEntMap *piem) {
+  if (piem==NULL) {
+    printf("<NULL");
+    return;
+  }
+  for (unsigned long i=0; i<piem->pHash->count; i++) {
+    printf("[%lu]: >", *(unsigned long *)(piem->pHash->ieArray[i].buf)); itPrint(&(piem->pKeys->ieArray[i]));
+    printf("< => >"); itPrint(&(piem->pValues->ieArray[i])); printf("<\n");
+  }
+}
