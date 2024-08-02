@@ -264,6 +264,15 @@ int main(int argc, char *argv[]) {
   itDelete(a);
   itDelete(b);
 
+  for (unsigned long i=0; i<sizeof(test2)/sizeof(TokParseTest); i++) {
+    printf("Tokparse >%s< token >%s<\n", test2[i].str, test2[i].tok);
+    a = itCreateString(test2[i].str);
+    b = itCreateString(test2[i].tok);
+    itMapSet(piem, a, b);
+    itDelete(a);
+    itDelete(b);
+    itMapPrint(piem);
+  }
   
   itMapDelete(piem);
   

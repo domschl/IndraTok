@@ -379,6 +379,7 @@ bool itArrayRemove(IndraEntArray *piea, unsigned long index) {
   return true;
 }
 
+// pie->buf gets NULLed!
 bool itArrayInsert(IndraEntArray **ppiea, unsigned long index, IndraEnt *pie) {
   if (ppiea==NULL || *ppiea==NULL) return false;
   if ((*ppiea)->count <= index) {
@@ -400,6 +401,7 @@ bool itArrayInsert(IndraEntArray **ppiea, unsigned long index, IndraEnt *pie) {
     (*ppiea)->ieArray[i] = (*ppiea)->ieArray[i-1];
   }
   (*ppiea)->ieArray[index] = *pie;
+  pie->buf = NULL;
   (*ppiea)->count += 1;
   return true;
 }
