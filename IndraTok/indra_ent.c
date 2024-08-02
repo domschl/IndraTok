@@ -349,7 +349,7 @@ bool itArraySetGrow(IndraEntArray **piea, unsigned long index, IndraEnt *pie) {
   if (pie == NULL) return false;
   if ((*piea)->capacity <= index) {
     unsigned long new_capa = index * 3 / 2;
-    //printf("Growing array to %lu\n", new_capa);
+    // printf("Growing array 1 to %lu\n", new_capa);
     *piea = itArrayResize(piea, new_capa);
     if (*piea == NULL) return false;
   }
@@ -388,13 +388,13 @@ bool itArrayInsert(IndraEntArray **ppiea, unsigned long index, IndraEnt *pie) {
   }
   if ((*ppiea)->capacity <= index) {
     unsigned long new_capa = index * 3 / 2;
-    //printf("Growing array to %lu\n", new_capa);
+    // printf("Growing array 2 to %lu\n", new_capa);
     *ppiea = itArrayResize(ppiea, new_capa);
     if (*ppiea == NULL) return false;
   }
   if ((*ppiea)->count+1 >= (*ppiea)->capacity) {
     unsigned long new_capa = (*ppiea)->count * 3 / 2;
-    //printf("Growing array to %lu\n", new_capa);
+    // printf("Growing array 3 to %lu\n", new_capa);
     *ppiea = itArrayResize(ppiea, new_capa);
     if (*ppiea == NULL) return false;
   }
@@ -482,9 +482,11 @@ long _itMapHashIndexGet(IndraEntMap *piem, IndraEnt *pKey, unsigned long *pHash)
       break;
     }
   }
-  pCurHash = piem->pHash->ieArray[l].buf;
-  if (pCurHash != NULL) {
-    if (l>=n ||  *pCurHash != *pHash) {
+  if (l>=n) {
+    return -l-1;  // Not found, upper end, return negative insertion point. Insert at -l-1.
+  } else {
+    pCurHash = (unsigned long *)(piem->pHash->ieArray[l].buf);
+    if (*pCurHash != *pHash) {
       return -l-1;  // Not found, return negative insertion point. Insert at -l-1.
     }
   } 
