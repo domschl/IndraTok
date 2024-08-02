@@ -333,6 +333,9 @@ bool itaSet(IndraEntArray *piea, unsigned long index, IndraEnt *pie) {
   if (piea->capacity <= index) return false;
   if (piea->type != pie->type) return false;
   piea->ieArray[index] = *pie;
+  pie->buf = NULL; // That buffer is now owned by the array. TBD?
+  pie->len = 0;
+  pie->type = IT_NIL;
   if (index + 1 > piea->count) {
     piea->count = index + 1;
   }
@@ -349,6 +352,9 @@ bool itaSetGrow(IndraEntArray **piea, unsigned long index, IndraEnt *pie) {
   }
   if ((*piea)->type != pie->type) return false;
   (*piea)->ieArray[index] = *pie;
+  pie->buf = NULL; // That buffer is now owned by the array. TBD?
+  pie->len = 0;
+  pie->type = IT_NIL;
   if (index + 1 > (*piea)->count) {
     (*piea)->count = index + 1;
   }

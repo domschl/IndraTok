@@ -291,7 +291,7 @@ IndraEntArray *stringSplitUtf8(const IndraEnt *source, const IndraEnt *token) {
         prt = itCreateStringFromSlice(source, part_start, fnd-part_start);
         //printf("tok: "); itPrintLn(prt);
         itaAppend(&pParts, prt);
-        free(prt);
+        itDelete(prt);  // Note: prt->buf has been transferred into the array, prt became IT_NIL by Append. 
       }
       cnt += 1;
       l = 0;
@@ -320,7 +320,7 @@ IndraEntArray *stringSplitUtf8(const IndraEnt *source, const IndraEnt *token) {
       prt = itCreateStringFromSlice(source, part_start, fnd-part_start);
       //printf("tok: "); itPrintLn(prt);
       itaAppend(&pParts, prt);
-        free(prt);
+      itDelete(prt);  // Note: prt->buf has been transferred into the array, prt became IT_NIL by Append. 
     }
     cnt += 1;
     //printf("Final found at %ld end: %ld\n", fnd, cnt);
@@ -329,7 +329,7 @@ IndraEntArray *stringSplitUtf8(const IndraEnt *source, const IndraEnt *token) {
       prt = itCreateStringFromSlice(source, part_start, source->len-part_start);
       //printf("tok: "); itPrintLn(prt);
       itaAppend(&pParts, prt);
-        free(prt);
+      itDelete(prt);  // Note: prt->buf has been transferred into the array, prt became IT_NIL by Append. 
     }
   }
   return pParts;
