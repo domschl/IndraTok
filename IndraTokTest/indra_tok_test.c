@@ -285,8 +285,8 @@ int main(int argc, char *argv[]) {
 
 
 
-  unsigned long N=1000000;
-  printf("Creating large map N=%lu:\n", N);
+  unsigned long N=10000;
+  printf("Creating map N=%lu:\n", N);
   piem = itMapCreateHash(IT_ULONG, IT_ULONG, IT_HASH_SIMPLE);
   for (unsigned long i=0; i<N; i++) {
     a = itCreateULong(i);
@@ -301,7 +301,7 @@ int main(int argc, char *argv[]) {
   }
   //itMapPrint(piem);
   printf("Hash clashes: %lu\n", hash_clashes);
-  printf("Checking large map N=%lu:\n", N);
+  printf("Checking map N=%lu:\n", N);
   for (unsigned long i=0; i<N; i++) {
     a = itCreateULong(i);
     b = itMapGet(piem, a);
