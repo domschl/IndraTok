@@ -285,7 +285,7 @@ int main(int argc, char *argv[]) {
 
 
 
-  unsigned long N=100000;
+  unsigned long N=1000000;
   printf("Creating large map N=%lu:\n", N);
   piem = itMapCreateHash(IT_ULONG, IT_ULONG, IT_HASH_SIMPLE);
   for (unsigned long i=0; i<N; i++) {

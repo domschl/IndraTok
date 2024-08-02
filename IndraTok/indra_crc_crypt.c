@@ -55,7 +55,7 @@ unsigned long itSimpleHash(unsigned char *buf, unsigned long length) {
     if (hash & 4) data |= (unsigned long)buf[i] << 32;
     if (hash & 8) data |= (unsigned long)buf[i] << 40;
     if (hash & 16) data |= (unsigned long)buf[i] << 48;
-    hash = (hash * IT_SIMPLE_MULT)  + data;
+    for (int j=0; j<4; j++) hash = ((hash ^ IT_SIMPLE_CONST2) * IT_SIMPLE_MULT)  + data;
   }
   return hash;
 }
