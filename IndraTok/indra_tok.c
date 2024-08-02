@@ -206,7 +206,7 @@ long stringFindCountUtf8(const IndraEnt *source, const IndraEnt *token) {
   for (unsigned long s=0; s<source->len; s++) {
     if (l == token->len) {
       cnt += 1;
-      printf("Found at %ld: %ld\n", fnd, cnt);
+      // printf("Found at %ld: %ld\n", fnd, cnt);
       l = 0;
       if (((unsigned char *)source->buf)[s] == ((unsigned char *)token->buf)[l]) {
         fnd = s;
@@ -227,7 +227,7 @@ long stringFindCountUtf8(const IndraEnt *source, const IndraEnt *token) {
   }
   if (l >= token->len) {
     cnt += 1;
-    printf("Final found at %ld end: %ld\n", fnd, cnt);
+    // printf("Final found at %ld end: %ld\n", fnd, cnt);
   }
   return cnt;
 }
@@ -262,24 +262,13 @@ void stringPartUtf8(const IndraEnt *source, IndraEnt **ppPart, unsigned int star
   }
 }
 
-// copy a buffer slice to a string and at \0 at string end
-bool copyBufSliceToString(const unsigned char *buf, unsigned long bufSliceStart, unsigned long bufSliceLen, char* destStr, unsigned long destStrLen) {
-  if (bufSliceLen+1 > destStrLen) return false;
-  memcpy(destStr, &buf[bufSliceStart], bufSliceLen);
-  destStr[bufSliceLen]=0;
-  return true;
-}
-
-void _insertPart(IndraEntArray **ppParts, const IndraEnt *source, unsigned long start, unsigned long length) {
-}
-
 IndraEntArray *stringSplitUtf8(const IndraEnt *source, const IndraEnt *token) {
   if (token==NULL) return NULL;
   if (source==NULL) return NULL;
   if (source->type != IT_STRING || token->type != IT_STRING) return NULL;
 
   bool insertEmpty = true;
-  IndraEntArray *pParts = itCreateArray(IT_STRING, 4);
+  IndraEntArray *pParts = itCreateArray(IT_STRING, 4);  // itaAppend() will grow array as needed.
   unsigned int l=0;
   unsigned long cnt=0;
   long fnd = -1;

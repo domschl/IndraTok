@@ -31,6 +31,7 @@ typedef struct _tok_parse_test {
 
 TokParseTest test2[] = {{"asdfjiefjiwjef", "asef"}, {"aaaa", "a"},
 {"a", "a"}, {"", "a"}, {"a" ,""},
+{"aaaaa", "a"},{"aaaaaaaaaaaaaaaa", "a"},
 {"abcabcabc", "ab"}, {"abcabc", "abc"},
 {"gulpabbagulpbubugulp", "gulp"},
 {"abbagulpbubugulp", "gulp"},

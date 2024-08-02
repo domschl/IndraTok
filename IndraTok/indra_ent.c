@@ -347,6 +347,7 @@ bool itaSetGrow(IndraEntArray **piea, unsigned long index, IndraEnt *pie) {
   if (pie == NULL) return false;
   if ((*piea)->capacity <= index) {
     unsigned long new_capa = index * 3 / 2;
+    //printf("Growing array to %lu\n", new_capa);
     *piea = itResizeArray(piea, new_capa);
     if (*piea == NULL) return false;
   }
