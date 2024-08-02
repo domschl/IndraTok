@@ -6,6 +6,8 @@
 #include "indra_ent.h"
 #include "indra_tok.h"
 
+#include <sys/time.h>
+
 bool makeString(IndraEnt **ppa, const char *str) {
   //printf("Creating string: %s\n", str);
   (*ppa) = itCreateString(str);
@@ -38,6 +40,7 @@ TokParseTest test2[] = {{"asdfjiefjiwjef", "asef"}, {"aaaa", "a"},
 };
 
 int main(int argc, char *argv[]) {
+  struct timeval start, stop;
   unsigned int errs = 0, oks=0;
   IndraEnt *a=NULL, *b=NULL, *c=NULL;
   if (!makeString(&a, "Hello, world!")) {
@@ -316,8 +319,56 @@ int main(int argc, char *argv[]) {
     itDelete(a);
   }
   printf("Map:\n"); itMapPrint(piem);
-
   itMapDelete(piem);
+
+  N=10;
+  for (int r=0; r<5; r++) {
+    gettimeofday(&start, NULL);
+    printf("Creating map N=%lu:\n", N);
+    piem = itMapCreateHash(IT_ULONG, IT_ULONG, IT_HASH_SIMPLE);
+    for (unsigned long i=0; i<N; i++) {
+      a = itCreateULong(i);
+      b = itCreateULong(i);
+      itMapSet(piem, a, b);
+      itDelete(a);
+      itDelete(b);
+    }
+    gettimeofday(&stop, NULL);
+    double dt = (double)((stop.tv_sec - start.tv_sec) * (long)1000000 + stop.tv_usec - start.tv_usec)/(double)N;
+    printf("WRITE: N=%ld, dt=%lf us\n", N, dt);
+    gettimeofday(&start, NULL);
+    printf("Updating map N=%lu:\n", N);
+    for (unsigned long i=0; i<N; i++) {
+      a = itCreateULong(i);
+      b = itCreateULong(i*2);
+      itMapSet(piem, a, b);
+      itDelete(a);
+      itDelete(b);
+    }
+    gettimeofday(&stop, NULL);
+    dt = (double)((stop.tv_sec - start.tv_sec) * (long)1000000 + stop.tv_usec - start.tv_usec)/(double)N;
+    printf("WRITE (update): N=%ld, dt=%lf us\n", N, dt);
+    printf("Checking map N=%lu:\n", N);
+    gettimeofday(&start, NULL);
+    for (unsigned long i=0; i<N; i++) {
+      a = itCreateULong(i);
+      b = itMapGet(piem, a);
+      if (b && *(unsigned long *)b->buf == i*2) {
+        oks += 1;
+      } else {
+        errs += 1;
+      }
+      itDelete(a);
+    }
+    gettimeofday(&stop, NULL);
+    dt = (double)((stop.tv_sec - start.tv_sec) * 1000000 + stop.tv_usec - start.tv_usec)/(double)N;
+    printf("READ: N=%ld, dt=%lf us\n", N, dt);
+    N = N * 10;
+    itMapDelete(piem);
+  }
+
+
+  
   printf("\nErrors: %u, Oks: %u\n", errs, oks);
   return errs;
 }

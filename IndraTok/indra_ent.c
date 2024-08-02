@@ -408,7 +408,7 @@ bool itArrayInsert(IndraEntArray **ppiea, unsigned long index, IndraEnt *pie) {
   return true;
 }
 
-// ======== Hash-Map ================================================
+// ======== Hash-Map (slow write!) ================================================
 IndraEntMap *itMapCreateHash(IndraTypes keyType, IndraTypes valueType, IndraHashTypes hashType) {
   IndraEntMap *piem = (IndraEntMap *)malloc(sizeof(IndraEntMap));
   if (piem == NULL) return NULL;
@@ -461,8 +461,8 @@ unsigned long _itGetHash(IndraHashTypes hashType, unsigned char *buf, unsigned l
 
 // Return index of 'left-most' matching hash, if hash is found,
 // If index < 0, Insertion-point would be at -index -1 (Insertion point can be beyond current len!)
-long _itMapHashIndexGet(IndraEntMap *piem, IndraEnt *pKey) {
-  unsigned long hash = _itGetHash(piem->hashType, pKey->buf, pKey->len);
+long _itMapHashIndexGet(IndraEntMap *piem, IndraEnt *pKey, unsigned long *pHash) {
+  *pHash = _itGetHash(piem->hashType, pKey->buf, pKey->len);
   unsigned long n = piem->pHash->count;
   unsigned long l = 0;
   unsigned long r = n;
@@ -472,7 +472,7 @@ long _itMapHashIndexGet(IndraEntMap *piem, IndraEnt *pKey) {
     m = (l+r)/2;
     pCurHash = piem->pHash->ieArray[m].buf;
     if (pCurHash != NULL) {
-      if (*pCurHash < hash) {
+      if (*pCurHash < *pHash) {
         l = m+1;
       } else {
         r = m;
@@ -484,18 +484,18 @@ long _itMapHashIndexGet(IndraEntMap *piem, IndraEnt *pKey) {
   }
   pCurHash = piem->pHash->ieArray[l].buf;
   if (pCurHash != NULL) {
-    if (l>=n ||  *pCurHash != hash) {
+    if (l>=n ||  *pCurHash != *pHash) {
       return -l-1;  // Not found, return negative insertion point. Insert at -l-1.
     }
   } 
   return l;
 }
 
-long _itMapIndexGet(IndraEntMap *piem, IndraEnt *pKey) {
-  long index = _itMapHashIndexGet(piem, pKey);
+long _itMapIndexGet(IndraEntMap *piem, IndraEnt *pKey, unsigned long *pHash) {
+  long index = _itMapHashIndexGet(piem, pKey, pHash);
   if (index >= 0) { // Key might exist
     unsigned long curInd = index;
-    while (curInd<piem->pKeys->count && piem->pKeys->ieArray[curInd].len == pKey->len) {
+    while (curInd<piem->pKeys->count && *(unsigned long *)(piem->pHash->ieArray[curInd].buf) == *pHash && piem->pKeys->ieArray[curInd].len == pKey->len) {
       if (!memcmp(piem->pKeys->ieArray[curInd].buf, pKey->buf, pKey->len)) {
         return curInd;
       } else {
@@ -508,13 +508,14 @@ long _itMapIndexGet(IndraEntMap *piem, IndraEnt *pKey) {
 
 bool itMapSet(IndraEntMap *piem, IndraEnt *pKey, IndraEnt *pValue) {
   if (piem==NULL || pKey==NULL || pValue==NULL) return false;
-  long index = _itMapHashIndexGet(piem, pKey);
+  unsigned long hash;
+  long index = _itMapHashIndexGet(piem, pKey, &hash);
   bool exists = false;
   long insertionIndex= -1;
   if (index >= 0) { // Key might exist
     unsigned long curInd = index;
     insertionIndex = index;
-    while (curInd<piem->pKeys->count && piem->pKeys->ieArray[curInd].len == pKey->len) {
+    while (curInd<piem->pKeys->count && *(unsigned long *)(piem->pHash->ieArray[curInd].buf) == hash && piem->pKeys->ieArray[curInd].len == pKey->len) {
       if (!memcmp(piem->pKeys->ieArray[curInd].buf, pKey->buf, pKey->len)) {
         exists = true;
         index = curInd;
@@ -531,7 +532,7 @@ bool itMapSet(IndraEntMap *piem, IndraEnt *pKey, IndraEnt *pValue) {
     piem->pValues->ieArray[index] = *pValue;
     pValue->buf = NULL;
   } else {
-    unsigned long hash = _itGetHash(piem->hashType, pKey->buf, pKey->len);
+    // unsigned long hash = _itGetHash(piem->hashType, pKey->buf, pKey->len);
     IndraEnt *pHash = itCreateULong(hash);
     itArrayInsert(&(piem->pHash), insertionIndex, pHash);
     itDelete(pHash);
@@ -542,18 +543,21 @@ bool itMapSet(IndraEntMap *piem, IndraEnt *pKey, IndraEnt *pValue) {
 }
 
 IndraEnt* itMapGet(IndraEntMap *piem, IndraEnt *pKey) {
-  long index = _itMapIndexGet(piem, pKey);
+  unsigned long hash;
+  long index = _itMapIndexGet(piem, pKey, &hash);
   if (index < 0) return NULL;
   return &(piem->pValues->ieArray[index]);
 }
 
 bool itMapExists(IndraEntMap *piem, IndraEnt *pKey) {
-  if (_itMapIndexGet(piem, pKey) >= 0) return true;
+  unsigned long hash;
+  if (_itMapIndexGet(piem, pKey, &hash) >= 0) return true;
   return false;
 }
 
 bool itMapRemove(IndraEntMap *piem, IndraEnt *pKey) {
-  long index = _itMapIndexGet(piem, pKey);
+  unsigned long hash;
+  long index = _itMapIndexGet(piem, pKey, &hash);
   if (index < 0) return false;
   itArrayRemove(piem->pHash, index);
   itArrayRemove(piem->pKeys, index);
