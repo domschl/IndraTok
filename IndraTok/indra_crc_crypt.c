@@ -6,15 +6,15 @@
 // Source: Dr.Dobb's, Bob Felice, June 17, 2007,
 // http://www.drdobbs.com/implementing-the-ccitt-cyclical-redundan/199904926
 // The CCITT CRC 16 polynomial is X^16 + X^12 + X^5 + 1.
-// In binary, this is the bit pattern 1 0001 0000 0010 0001, and in hex it is 0x11021.
+// In binary, this is the bit pattern 1 0001 0000 0010 0001, and in hex ia is 0x11021.
 // A 17 bit register is simulated by testing the MSB before shifting the data, which
 // affords us the luxury of specifiy the polynomial as a 16 bit value, 0x1021.
 // Due to the way in which we process the CRC, the bits of the polynomial are stored
 // in reverse order. This makes the polynomial 0x8408.
 
-#define IT_CRC16_CCITT_POLY (0x8408)
+#define IA_CRC16_CCITT_POLY (0x8408)
 
-uint16_t itCrc16Ccitt(const uint8_t *data_p, unsigned long length) {
+uint16_t iaCrc16Ccitt(const uint8_t *data_p, unsigned long length) {
   uint8_t i;
   uint16_t data;
   uint16_t crc;
@@ -27,7 +27,7 @@ uint16_t itCrc16Ccitt(const uint8_t *data_p, unsigned long length) {
   do {
     for (i = 0, data = (unsigned int)0xff & *data_p++; i < 8; i++, data >>= 1) {
       if ((crc & 0x0001) ^ (data & 0x0001)) {
-        crc = (crc >> 1) ^ IT_CRC16_CCITT_POLY;
+        crc = (crc >> 1) ^ IA_CRC16_CCITT_POLY;
       } else {
         crc >>= 1;
       }
@@ -40,11 +40,11 @@ uint16_t itCrc16Ccitt(const uint8_t *data_p, unsigned long length) {
   return (crc);
 }
 
-#define IT_SIMPLE_CONST 0x47218408
-#define IT_SIMPLE_CONST2 0x4329567584745642
-#define IT_SIMPLE_MULT 31
+#define IA_SIMPLE_CONST 0x47218408
+#define IA_SIMPLE_CONST2 0x4329567584745642
+#define IA_SIMPLE_MULT 31
 
-unsigned long itSimpleHash(unsigned char *buf, unsigned long length) {
+unsigned long iaSimpleHash(unsigned char *buf, unsigned long length) {
   unsigned long hash = 0xffffffffffffffff;
   unsigned long data;
   for (unsigned long i=0; i<length; i++) {
@@ -55,7 +55,7 @@ unsigned long itSimpleHash(unsigned char *buf, unsigned long length) {
     if (hash & 4) data |= (unsigned long)buf[i] << 32;
     if (hash & 8) data |= (unsigned long)buf[i] << 40;
     if (hash & 16) data |= (unsigned long)buf[i] << 48;
-    for (int j=0; j<4; j++) hash = ((hash ^ IT_SIMPLE_CONST2) * IT_SIMPLE_MULT)  + data;
+    for (int j=0; j<4; j++) hash = ((hash ^ IA_SIMPLE_CONST2) * IA_SIMPLE_MULT)  + data;
   }
   return hash;
 }
@@ -71,10 +71,10 @@ unsigned long itSimpleHash(unsigned char *buf, unsigned long length) {
 // Beware! in situ!
 
 
-#define IT_XXTEA_DELTA (0x9e3779b9)
-#define IT_XXTEA_MX (((z>>5^y<<2) + (y>>3^z<<4)) ^ ((sum^y) + (key[(p&3)^e] ^ z)))
+#define IA_XXTEA_DELTA (0x9e3779b9)
+#define IA_XXTEA_MX (((z>>5^y<<2) + (y>>3^z<<4)) ^ ((sum^y) + (key[(p&3)^e] ^ z)))
 
-void itXxteaEncrypt(uint32_t *v, int n, uint32_t const key[4]) {
+void iaXxteaEncrypt(uint32_t *v, int n, uint32_t const key[4]) {
   uint32_t y, z, sum;
   uint16_t p, rounds, e;
     
@@ -84,34 +84,34 @@ void itXxteaEncrypt(uint32_t *v, int n, uint32_t const key[4]) {
   sum = 0;
   z = v[n-1];
   do {
-    sum += IT_XXTEA_DELTA;
+    sum += IA_XXTEA_DELTA;
     e = (sum >> 2) & 3;
     for (p=0; p<n-1; p++) {
       y = v[p+1];
-      z = v[p] += IT_XXTEA_MX;
+      z = v[p] += IA_XXTEA_MX;
     }
     y = v[0];
-    z = v[n-1] += IT_XXTEA_MX;
+    z = v[n-1] += IA_XXTEA_MX;
   } while (--rounds);
 }
 
-void itXxteaDecrypt(uint32_t *v, int n, uint32_t const key[4]) {
+void iaXxteaDecrypt(uint32_t *v, int n, uint32_t const key[4]) {
   uint32_t y, z, sum;
   uint16_t p, rounds, e;
     
   if (n<1) return;
     
   rounds = 6 + 52/n;
-  sum = rounds*IT_XXTEA_DELTA;
+  sum = rounds*IA_XXTEA_DELTA;
   y = v[0];
   do {
     e = (sum >> 2) & 3;
     for (p=n-1; p>0; p--) {
       z = v[p-1];
-      y = v[p] -= IT_XXTEA_MX;
+      y = v[p] -= IA_XXTEA_MX;
     }
     z = v[n-1];
-    y = v[0] -= IT_XXTEA_MX;
-    sum -= IT_XXTEA_DELTA;
+    y = v[0] -= IA_XXTEA_MX;
+    sum -= IA_XXTEA_DELTA;
   } while (--rounds);
 }

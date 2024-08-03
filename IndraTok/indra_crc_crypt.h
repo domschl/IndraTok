@@ -2,8 +2,8 @@
 
 #include <stdint.h>
 
-uint16_t itCrc16Ccitt(const uint8_t *data_p, unsigned long length);
-unsigned long itSimpleHash(unsigned char *buf, unsigned long length);
+uint16_t iaCrc16Ccitt(const uint8_t *data_p, unsigned long length);
+unsigned long iaSimpleHash(unsigned char *buf, unsigned long length);
 
-void itXxteaEncrypt(uint32_t *v, int n, uint32_t const key[]);
-void itXxteaDecrypt(uint32_t *v, int n, uint32_t const key[]);
+void iaXxteaEncrypt(uint32_t *v, int n, uint32_t const key[]);
+void iaXxteaDecrypt(uint32_t *v, int n, uint32_t const key[]);

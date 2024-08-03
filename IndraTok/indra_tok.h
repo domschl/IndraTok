@@ -1,20 +1,20 @@
 #pragma once
 
 #include <stdbool.h>
-#include "indra_ent.h"
+#include "indra_atom.h"
 
-void stringAppend(IndraEnt *root, const IndraEnt *appendix);
-void stringPartBytes(const IndraEnt *source, IndraEnt **ppPart, unsigned int start, unsigned long len);
-void stringStartBytes(const IndraEnt *source, IndraEnt **ppStart, unsigned long len);
-void stringEndBytes(const IndraEnt *source, IndraEnt **ppEnd, unsigned long len);
-bool stringContainsBytes(const IndraEnt *source, IndraEnt *token);
-long stringFindBytes(const IndraEnt *source, const IndraEnt *token, unsigned long offset);
-long stringFindCountBytes(const IndraEnt *source, const IndraEnt *token);
+void stringAppend(IndraAtom *root, const IndraAtom *appendix);
+void stringPartBytes(const IndraAtom *source, IndraAtom **ppPart, unsigned int start, unsigned long len);
+void stringStartBytes(const IndraAtom *source, IndraAtom **ppStart, unsigned long len);
+void stringEndBytes(const IndraAtom *source, IndraAtom **ppEnd, unsigned long len);
+bool stringContainsBytes(const IndraAtom *source, IndraAtom *token);
+long stringFindBytes(const IndraAtom *source, const IndraAtom *token, unsigned long offset);
+long stringFindCountBytes(const IndraAtom *source, const IndraAtom *token);
 unsigned int utf8CharLen(unsigned char ctok);
-bool stringValidateUtf8(const IndraEnt *source);
-unsigned int stringLenUtf8(const IndraEnt *source);
-int stringFindUtf8(const IndraEnt *source, const IndraEnt *token);
-long stringFindCountUtf8(const IndraEnt *source, const IndraEnt *token);
-void stringPartUtf8(const IndraEnt *source, IndraEnt **ppPart, unsigned int start, unsigned int len);
-void stringDisplayHex(const IndraEnt *source);
-IndraEntArray* stringSplitUtf8(const IndraEnt *source, const IndraEnt *token);
+bool stringValidateUtf8(const IndraAtom *source);
+unsigned int stringLenUtf8(const IndraAtom *source);
+int stringFindUtf8(const IndraAtom *source, const IndraAtom *token);
+long stringFindCountUtf8(const IndraAtom *source, const IndraAtom *token);
+void stringPartUtf8(const IndraAtom *source, IndraAtom **ppPart, unsigned int start, unsigned int len);
+void stringDisplayHex(const IndraAtom *source);
+IndraAtom* stringSplitUtf8(const IndraAtom *source, const IndraAtom *token);
