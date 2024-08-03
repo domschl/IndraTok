@@ -6,6 +6,11 @@
 //#include "indra_crc_crypt.h"
 
 
+const unsigned long indraTypesRecsize[] = {0, sizeof(char), sizeof(unsigned char),
+                                              sizeof(int), sizeof(unsigned int), sizeof(long), sizeof(unsigned long),
+                                              sizeof(float), sizeof(double), sizeof(unsigned char),
+                                              sizeof(IndraAtom), sizeof(IndraAtomMap), sizeof(IndraAtomList)};
+
 void iaDelete(IndraAtom *pia) {
   if (pia == NULL) return;
   if (pia->type != IA_NIL && pia->buf != NULL) {
@@ -305,14 +310,14 @@ IndraAtom *iaResize(IndraAtom **ppiaOld, unsigned long capacity) {
 void *iaArrayGet(const IndraAtom *pia, unsigned long index) {
   if (pia==NULL) return NULL;
   if (pia->count <= index) return NULL;
-  return &pia->buf[index*pia->recsize];
+  return &(((unsigned char *)(pia->buf))[index*pia->recsize]);
 }
 
 bool iaArraySet(IndraAtom *pia, unsigned long index, const void *buf) {
   if (pia == NULL) return false;
   if (buf == NULL) return false;
   if (pia->capacity <= index) return false;
-  memcpy(&pia->buf[index*pia->recsize], buf, pia->recsize);
+  memcpy(&(((unsigned char *)(pia->buf))[index*pia->recsize]), buf, pia->recsize);
   if (index + 1 > pia->count) {
     pia->count = index + 1;
   }
@@ -346,18 +351,18 @@ bool iaJoin(IndraAtom **ppiaRoot, const IndraAtom *piaAppendix) {
     *ppiaRoot = iaResize(ppiaRoot, new_capa);
     if (*ppiaRoot == NULL) return false;
   }
-  memcpy(&(*ppiaRoot)->buf[old_count * (*ppiaRoot)->recsize], piaAppendix->buf, piaAppendix->count * (*ppiaRoot)->recsize);
+  memcpy(&(((unsigned char *)((*ppiaRoot)->buf))[old_count * (*ppiaRoot)->recsize]), piaAppendix->buf, piaAppendix->count * (*ppiaRoot)->recsize);
   (*ppiaRoot)->count = new_count;
   if ((*ppiaRoot)->type == IA_CHAR) ((char *)(*ppiaRoot)->buf)[new_count] = 0;
   return true;
 }
 
-IndraAtom *iaSlice(IndraAtom *pia, unsigned long index, unsigned long count) {
+IndraAtom *iaSlice(const IndraAtom *pia, unsigned long index, unsigned long count) {
   if (pia == NULL) return NULL;
   if (index + count > pia->count) return NULL;
   unsigned long capa = count;
   if (pia->type == IA_CHAR) capa += 1;
-  IndraAtom* piaSlice = iaCreate(pia->type, &(pia->buf[index * pia->recsize]), count, capa);
+  IndraAtom* piaSlice = iaCreate(pia->type, &(((unsigned char *)(pia->buf))[index * pia->recsize]), count, capa);
   if (piaSlice->type == IA_CHAR) ((char *)piaSlice->buf)[piaSlice->count]=0;
   return piaSlice;
 }
@@ -365,7 +370,7 @@ IndraAtom *iaSlice(IndraAtom *pia, unsigned long index, unsigned long count) {
 bool iaArrayRemove(IndraAtom *pia, unsigned long index) {
   if (pia==NULL) return false;
   if (pia->count <= index) return false;
-  memmove(&pia->buf[pia->recsize*index],&pia->buf[pia->recsize * (index+1)], (pia->recsize *(pia->count - index -1))); 
+  memmove(&(((unsigned char *)(pia->buf))[pia->recsize*index]),&(((unsigned char *)(pia->buf))[pia->recsize * (index+1)]), (pia->recsize *(pia->count - index -1))); 
   pia->count -= 1;
   return true;
 }
@@ -390,11 +395,11 @@ bool iaArrayInsert(IndraAtom **ppia, unsigned long index, const void *buf) {
     if (*ppiaa == NULL) return false;
   }
   */
-  memmove(&(*ppia)->buf[(*ppia)->recsize *(index+1)], &(*ppia)->buf[(*ppia)->recsize * index], ((*ppia)->count - index)*(*ppia)->recsize);
+  memmove(&(((unsigned char *)((*ppia)->buf))[(*ppia)->recsize *(index+1)]), &(((unsigned char *)((*ppia)->buf))[(*ppia)->recsize * index]), ((*ppia)->count - index)*(*ppia)->recsize);
   //for (unsigned long i=(*ppiaa)->count; i>index; i--) {
   //  (*ppiaa)->ieArray[i] = (*ppiaa)->ieArray[i-1];
   //}
-  memcpy(&(*ppia)->buf[(*ppia)->recsize * index], buf, (*ppia)->recsize);
+  memcpy(&(((unsigned char *)((*ppia)->buf))[(*ppia)->recsize * index]), buf, (*ppia)->recsize);
   (*ppia)->count += 1;
   return true;
 }

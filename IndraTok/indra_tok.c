@@ -3,81 +3,31 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "indra_ent.h"
+#include "indra_atom.h"
 #include "indra_tok.h"
 
-
-void stringAppend(IndraEnt *root, const IndraEnt *appendix) {
-  if (root == NULL || appendix == NULL) return;
-  if (root->type != IT_STRING || appendix->type!=IT_STRING) return;
-  if (appendix->buf==NULL) return;
-  int n = root->len + appendix->len;
-  char* oldRoot = NULL;
-  if (root->buf) {
-    if (root->len > 0) {
-      oldRoot = (char *)malloc(root->len);
-      memcpy(oldRoot, root->buf, root->len);
-    }
-    free(root->buf);
-  }
-  root->buf=(unsigned char *)malloc(n + 1);
-  if (oldRoot) {
-    memcpy(root->buf, oldRoot, root->len);
-    free(oldRoot);
-  }
-  memcpy(&(((unsigned char *)root->buf)[root->len]), appendix->buf, appendix->len);
-  ((char *)root->buf)[n] = 0;
-  root->len=n;
-}
-
-void stringPartBytes(const IndraEnt *source, IndraEnt **ppPart, unsigned int start, unsigned long len) {
-  if (ppPart == NULL) return;
-  *ppPart = NULL;
-  if (source == NULL) return;
-  if (start > source->len) return;
-  unsigned int n = len;
-  if (start + n > source->len) n = source->len - start;
-  *ppPart = (IndraEnt *)malloc(sizeof(IndraEnt));
-  (*ppPart)->type = IT_BYTES;
-  (*ppPart)->len = n;
-  (*ppPart)->buf = malloc(n);
-  memcpy((*ppPart)->buf, &(((unsigned char *)source->buf)[start]), n);
-}
-
-void stringStartBytes(const IndraEnt *source, IndraEnt **ppStart, unsigned long len) {
-  stringPartBytes(source, ppStart, 0, len);
-}
-
-void stringEndBytes(const IndraEnt *source, IndraEnt **ppEnd, unsigned long len) {
-  if (source == NULL) return;
-  unsigned long start;
-  if (source->len < len) start = 0;
-  else start = source->len - len;
-  stringPartBytes(source, ppEnd, start, len);
-}
-
-bool stringContainsBytes(const IndraEnt *source, IndraEnt *token) {
+bool containsBytes(const IndraAtom *source, IndraAtom *token) {
   if (token==NULL) return false;
   if (source==NULL) return false;
-  if (source->type != IT_BYTES || token->type != IT_BYTES) return false;
+  if (source->type != IA_BYTE || token->type != IA_BYTE) return false;
   unsigned int l=0;
-  for (unsigned int s=0; s<source->len; s++) {
-    if (l+1 > token->len) return true;
+  for (unsigned int s=0; s<source->count; s++) {
+    if (l+1 > token->count) return true;
     if (((unsigned char *)source->buf)[s] != ((unsigned char *)token->buf)[l]) continue;
     else l += 1;
   }
-  if (l+1 > token->len) return true;
+  if (l+1 > token->count) return true;
   else return false;
 }
 
-long stringFindBytes(const IndraEnt *source, const IndraEnt *token, unsigned long offset) {
+long stringFindBytes(const IndraAtom *source, const IndraAtom *token, unsigned long offset) {
   if (token==NULL) return -1;
   if (source==NULL) return -1;
-  if (source->type != IT_BYTES || token->type != IT_BYTES) return false;
+  if (source->type != IA_BYTE || token->type != IA_BYTE) return false;
   unsigned long l=0;
   long fnd = -1;
-  for (unsigned long s=offset; s<source->len; s++) {
-    if (l == token->len) return fnd;
+  for (unsigned long s=offset; s<source->count; s++) {
+    if (l == token->count) return fnd;
     if (((unsigned char *)source->buf)[s] != ((unsigned char *)token->buf)[l]) {
       l = 0;
       fnd = -1;
@@ -86,19 +36,19 @@ long stringFindBytes(const IndraEnt *source, const IndraEnt *token, unsigned lon
     if (fnd == -1) fnd=s;
     l += 1;
   }
-  if (l >= token->len) return fnd;
+  if (l >= token->count) return fnd;
   else return -1;
 }
 
-long stringFindCountBytes(const IndraEnt *source, const IndraEnt *token) {
+long stringFindCountBytes(const IndraAtom *source, const IndraAtom *token) {
   if (token==NULL) return -1;
   if (source==NULL) return -1;
-  if (source->type != IT_BYTES || token->type != IT_BYTES) return false;
+  if (source->type != IA_BYTE || token->type != IA_BYTE) return false;
   unsigned int l=0;
   unsigned long cnt=0;
   long fnd = -1;
-  for (unsigned long s=0; s<source->len; s++) {
-    if (l == token->len) {
+  for (unsigned long s=0; s<source->count; s++) {
+    if (l == token->count) {
       cnt += 1;
       printf("Found at %ld: %ld\n", fnd, cnt);
       l = 0;
@@ -119,7 +69,7 @@ long stringFindCountBytes(const IndraEnt *source, const IndraEnt *token) {
     if (fnd == -1) fnd = s;
     l += 1;
   }
-  if (l >= token->len) {
+  if (l >= token->count) {
     cnt += 1;
     printf("Final found at %ld end: %ld\n", fnd, cnt);
   }
@@ -140,16 +90,16 @@ unsigned int utf8CharLen(unsigned char ctok) {
   }
 }
 
-bool stringValidateUtf8(const IndraEnt *source) {
+bool stringValidateUtf8(const IndraAtom *source) {
   if (source==NULL) return false;
   if (source->buf==NULL) return false;
-  if (source->type != IT_STRING) return false;
+  if (source->type != IA_CHAR) return false;
   unsigned int charLen, j;
-  for (unsigned int i=0; i<source->len; i++) {
+  for (unsigned int i=0; i<source->count; i++) {
     charLen = utf8CharLen(((char *)source->buf)[i]);
     if (!charLen) return false;
     if (charLen==1) continue;
-    if (i+charLen > source->len) return false;
+    if (i+charLen > source->count) return false;
     for (j=1; j<charLen; j++) {
       if ((((unsigned char *)source->buf)[i+j] & 0xC0) != 0x80) return false;
     }
@@ -158,12 +108,12 @@ bool stringValidateUtf8(const IndraEnt *source) {
   return true;
 }
 
-unsigned int stringLenUtf8(const IndraEnt *source) {
+unsigned int stringLenUtf8(const IndraAtom *source) {
   if (source==NULL) return 0;
   if (source->buf==NULL) return 0;
-  if (source->type != IT_STRING) return false;
+  if (source->type != IA_CHAR) return false;
   unsigned int n=0, charLen;
-  for (unsigned int i=0; i<source->len; i++) {
+  for (unsigned int i=0; i<source->count; i++) {
     charLen = utf8CharLen(((unsigned char *)source->buf)[i]);
     if (charLen==0) return 0;
     n+=1;
@@ -172,20 +122,20 @@ unsigned int stringLenUtf8(const IndraEnt *source) {
   return n;
 }
 
-int stringFindUtf8(const IndraEnt *source, const IndraEnt *token) {
+int stringFindUtf8(const IndraAtom *source, const IndraAtom *token) {
   if (source==NULL || token==NULL) return -1;
-  if (source->len==0 || token->len==0) return -1;
-  if (source->type != IT_STRING || token->type != IT_STRING) return -1;
-  if (source->len<token->len) return -1;
+  if (source->count==0 || token->count==0) return -1;
+  if (source->type != IA_CHAR || token->type != IA_CHAR) return -1;
+  if (source->count<token->count) return -1;
   unsigned int ti=0, len, n=0;
   int fnd = -1;
-  for (unsigned int i=0; i < source->len; i++) {
+  for (unsigned int i=0; i < source->count; i++) {
     len = utf8CharLen(((unsigned char *)source->buf)[i]);
     if (len==0) return -1;
-    if (token->len - ti >= len && !memcmp(&(((unsigned char *)source->buf)[i]),&(((unsigned char *)token->buf)[ti]),len)) {
+    if (token->count - ti >= len && !memcmp(&(((unsigned char *)source->buf)[i]),&(((unsigned char *)token->buf)[ti]),len)) {
       if (fnd == -1) fnd=n;
       ti += len;
-      if (ti == token->len) return fnd;
+      if (ti == token->count) return fnd;
     } else {
       fnd = -1;
       ti = 0;
@@ -196,15 +146,15 @@ int stringFindUtf8(const IndraEnt *source, const IndraEnt *token) {
   return -1;
 }
 
-long stringFindCountUtf8(const IndraEnt *source, const IndraEnt *token) {
+long stringFindCountUtf8(const IndraAtom *source, const IndraAtom *token) {
   if (token==NULL) return -1;
   if (source==NULL) return -1;
-  if (source->type != IT_STRING || token->type != IT_STRING) return false;
+  if (source->type != IA_CHAR || token->type != IA_CHAR) return false;
   unsigned int l=0;
   unsigned long cnt=0;
   long fnd = -1;
-  for (unsigned long s=0; s<source->len; s++) {
-    if (l == token->len) {
+  for (unsigned long s=0; s<source->count; s++) {
+    if (l == token->count) {
       cnt += 1;
       // printf("Found at %ld: %ld\n", fnd, cnt);
       l = 0;
@@ -225,7 +175,7 @@ long stringFindCountUtf8(const IndraEnt *source, const IndraEnt *token) {
     if (fnd == -1) fnd = s;
     l += 1;
   }
-  if (l >= token->len) {
+  if (l >= token->count) {
     cnt += 1;
     // printf("Final found at %ld end: %ld\n", fnd, cnt);
   }
@@ -233,17 +183,16 @@ long stringFindCountUtf8(const IndraEnt *source, const IndraEnt *token) {
 }
 
 
-void stringPartUtf8(const IndraEnt *source, IndraEnt **ppPart, unsigned int start, unsigned int len) {
-  if (ppPart == NULL || source== NULL) return;
-  if (source->type != IT_STRING) return;
+IndraAtom *stringPartUtf8(const IndraAtom *source, unsigned int start, unsigned int len) {
+  if (source== NULL) return NULL;
+  if (source->type != IA_CHAR) return NULL;
   if (stringLenUtf8(source) <= start) {
-    *ppPart = itCreateString("");
-    return;
+    return iaCreateString("");
   }
   unsigned int clen;
   unsigned int n=0;
   int p0=-1, p1=-1;
-  for (unsigned int i=0; i<source->len; i++) {
+  for (unsigned int i=0; i<source->count; i++) {
     clen = utf8CharLen(((unsigned char *)source->buf)[i]);
     if (n==start) p0=i;
     if (n==start+len) {
@@ -253,34 +202,35 @@ void stringPartUtf8(const IndraEnt *source, IndraEnt **ppPart, unsigned int star
     n += 1;
     i += clen-1;
   }
-  if (p1==-1) p1=source->len;
-  if (p0==-1) return;
+  if (p1==-1) p1=source->count;
+  if (p0==-1) return NULL;
   if (p0<p1) {
-    *ppPart = itCreateStringByLength(p1-p0);
-    (*ppPart)->len = p1-p0;
-    memcpy((*ppPart)->buf, &(((unsigned char *)source->buf)[p0]), p1-p0);
+    return iaSlice(source, p0, p1-p0);
+    //*ppPart = itCreateStringByLength(p1-p0);
+    //(*ppPart)->len = p1-p0;
+    //memcpy((*ppPart)->buf, &(((unsigned char *)source->buf)[p0]), p1-p0);
   }
+  return NULL;
 }
 
-IndraEntArray *stringSplitUtf8(const IndraEnt *source, const IndraEnt *token) {
+IndraAtom *stringSplitUtf8(const IndraAtom *source, const IndraAtom *token) {
   if (token==NULL) return NULL;
   if (source==NULL) return NULL;
-  if (source->type != IT_STRING || token->type != IT_STRING) return NULL;
+  if (source->type != IA_CHAR || token->type != IA_CHAR) return NULL;
 
   bool insertEmpty = true;
-  IndraEntArray *pParts = itArrayCreate(IT_STRING, 4);  // itaAppend() will grow array as needed.
+  IndraAtom *pParts = NULL;
   unsigned int l=0;
   unsigned long cnt=0;
   long fnd = -1;
-  IndraEnt *prt;
   unsigned long part_start = 0;
-  for (unsigned long s=0; s<source->len; s++) {
-    if (l == token->len) {
+  for (unsigned long s=0; s<source->count; s++) {
+    if (l == token->count) {
       if (fnd - part_start > 0 || insertEmpty) {
-        prt = itCreateStringFromSlice(source, part_start, fnd-part_start);
+        IndraAtom *prt = iaSlice(source, part_start, fnd-part_start);
         //printf("tok: "); itPrintLn(prt);
-        itArrayAppend(&pParts, prt);
-        itDelete(prt);  // Note: prt->buf has been transferred into the array, prt became IT_NIL by Append. 
+        if (pParts == NULL) pParts = prt;
+        else iaJoin(&pParts, prt);
       }
       cnt += 1;
       l = 0;
@@ -304,21 +254,21 @@ IndraEntArray *stringSplitUtf8(const IndraEnt *source, const IndraEnt *token) {
     if (fnd == -1) fnd = s;
     l += 1;
   }
-  if (l >= token->len) {
+  if (l >= token->count) {
     if (fnd - part_start > 0 || insertEmpty) {
-      prt = itCreateStringFromSlice(source, part_start, fnd-part_start);
+      IndraAtom *prt = iaSlice(source, part_start, fnd-part_start);
       //printf("tok: "); itPrintLn(prt);
-      itArrayAppend(&pParts, prt);
-      itDelete(prt);  // Note: prt->buf has been transferred into the array, prt became IT_NIL by Append. 
+      if (pParts == NULL) pParts = prt;
+      else iaJoin(&pParts, prt);
     }
     cnt += 1;
     //printf("Final found at %ld end: %ld\n", fnd, cnt);
   } else {
     if (fnd - part_start > 0 || insertEmpty) {
-      prt = itCreateStringFromSlice(source, part_start, source->len-part_start);
+      IndraAtom *prt = iaSlice(source, part_start, source->count-part_start);
       //printf("tok: "); itPrintLn(prt);
-      itArrayAppend(&pParts, prt);
-      itDelete(prt);  // Note: prt->buf has been transferred into the array, prt became IT_NIL by Append. 
+      if (pParts == NULL) pParts = prt;
+      else iaJoin(&pParts, prt);
     }
   }
   return pParts;
@@ -340,10 +290,10 @@ void _toHex(char *target, unsigned char byte) {
   *target=0;
 }
 
-void stringDisplayHex(const IndraEnt *source) {
+void stringDisplayHex(const IndraAtom *source) {
   if (source==NULL) return;
-  if (source->type != IT_STRING) return;
-  if (source->len == 0) {
+  if (source->type != IA_CHAR) return;
+  if (source->count == 0) {
     printf("<empty string>\n");
     return;
   }
@@ -356,7 +306,7 @@ void stringDisplayHex(const IndraEnt *source) {
   *l1=0;
   *l2=0;
   printf("\n");
-  for (unsigned int i=0; i<source->len; i++) {
+  for (unsigned int i=0; i<source->count; i++) {
     unsigned int len=utf8CharLen(((unsigned char *)source->buf)[i]);
     if (len == 0 || len > 4) {
       _toHex(charStr, ((unsigned char *)source->buf)[i]);

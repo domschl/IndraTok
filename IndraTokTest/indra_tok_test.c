@@ -3,14 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "indra_ent.h"
+#include "indra_atom.h"
 #include "indra_tok.h"
 
 #include <sys/time.h>
 
-bool makeString(IndraEnt **ppa, const char *str) {
+bool makeString(IndraAtom **ppa, const char *str) {
   //printf("Creating string: %s\n", str);
-  (*ppa) = itCreateString(str);
+  (*ppa) = iaCreateString(str);
   if (!stringValidateUtf8(*ppa)) {
     printf("Bad string: <%s>\n", str);
     return false;
@@ -42,7 +42,7 @@ TokParseTest test2[] = {{"asdfjiefjiwjef", "asef"}, {"aaaa", "a"},
 int main(int argc, char *argv[]) {
   struct timeval start, stop;
   unsigned int errs = 0, oks=0;
-  IndraEnt *a=NULL, *b=NULL, *c=NULL;
+  IndraAtom *a=NULL, *b=NULL, *c=NULL;
   if (!makeString(&a, "Hello, world!")) {
     printf("ERROR: Failed to create string.\n");
     errs += 1;
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
     oks += 1;
   }
   // printf("String: "); stringPrintLn(&a); printf(" | Part 5,3: ");
-  stringPartUtf8(a, &b, 5, 3);
+  b = stringPartUtf8(a, 5, 3);
   // stringPrintLn(&b);
   if (b==NULL || b->buf == NULL) {
     errs += 1;
@@ -64,13 +64,13 @@ int main(int argc, char *argv[]) {
       oks += 1;
     }
   }
-  itDelete(b);
-  itDelete(a);
+  iaDelete(b);
+  iaDelete(a);
   
-  a = itCreateString("Hello, ");
-  b = itCreateString("world!");
-  stringAppend(a, b);
-  itPrintLn(a);
+  a = iaCreateString("Hello, ");
+  b = iaCreateString("world!");
+  iaJoin(&a, b);
+  iaPrintLn(a);
   char *pStr = (char *)a->buf;
   if (strcmp("Hello, world!", pStr)) {
     errs += 1;
@@ -78,12 +78,13 @@ int main(int argc, char *argv[]) {
   } else {
     oks += 1;
   }
-  itDelete(a); itDelete(b);
+  iaDelete(a);
+  iaDelete(b);
   
-  c = itCreateString("");
+  c = iaCreateString("");
   unsigned long sum=0;
   for (unsigned int i=0; i<sizeof(test1)/sizeof(test1[0]); i++) {
-    a = itCreateString(test1[i].charString);
+    a = iaCreateString(test1[i].charString);
     pStr = (char *)a->buf;
     if (strcmp(pStr, test1[i].charString)) {
       printf("ERROR: Conversion cycle failed for >%s<, result >%s<\n", test1[i].charString, pStr);
@@ -91,7 +92,7 @@ int main(int argc, char *argv[]) {
     } else {
       oks += 1;
     }
-    stringAppend(c, a); sum+=test1[i].utf8Len;
+    iaJoin(&c, a); sum+=test1[i].utf8Len;
     stringDisplayHex(a);
     unsigned long len=stringLenUtf8(a);
     if (len != test1[i].utf8Len) {
@@ -108,12 +109,12 @@ int main(int argc, char *argv[]) {
     } else {
       oks += 1;
     }
-    itDelete(a);
+    iaDelete(a);
   }
-  itDelete(c);
+  iaDelete(c);
 
-  a = itCreateString("Hello, World!");
-  b = itCreateString("orld!");
+  a = iaCreateString("Hello, World!");
+  b = iaCreateString("orld!");
   long ind = stringFindUtf8(a, b);
   if (ind != 8) {
     printf("ERROR: findUtf8, expected 8, got %ld\n", ind);
@@ -121,10 +122,11 @@ int main(int argc, char *argv[]) {
   } else {
     oks += 1;
   }
-  itDelete(a); itDelete(b);
+  iaDelete(a);
+  iaDelete(b);
 
-  a = itCreateString("mömömö");
-  stringPartUtf8(a, &b, 2, 2);
+  a = iaCreateString("mömömö");
+  b = stringPartUtf8(a, 2, 2);
   pStr=(char *)b->buf;
   if (strcmp("mö", pStr)) {
     printf("ERROR: part string, expected %s, got %s\n", "mö", pStr);
@@ -138,18 +140,19 @@ int main(int argc, char *argv[]) {
   } else {
     oks += 1;
   }
-  itDelete(a); itDelete(b);
+  iaDelete(a);
+  iaDelete(b);
 
   
-  a = itCreateBytes((unsigned char *)"momomo", 6);
-  stringPartBytes(a, &b, 2, 2);
+  a = iaCreateBytes((unsigned char *)"momomo", 6);
+  b = iaSlice(a, 2, 2);
   if (memcmp((unsigned char *)b->buf, (unsigned char *)"mo", 2)) {
     errs += 1;
-    printf("ERROR: part expected <mo>, got: "); itPrint(b);
+    printf("ERROR: part expected <mo>, got: "); iaPrint(b);
   } else {
     oks +=1;
   }
-  itPrint(a); printf(" "); itPrintLn(b);
+  iaPrint(a); printf(" "); iaPrintLn(b);
   cnt = stringFindCountBytes(a, b);
   if (cnt != 3) {
     printf("ERROR: Tok-count: %ld (3)\n", cnt);
@@ -190,13 +193,13 @@ int main(int argc, char *argv[]) {
   } else {
     oks += 1;
   } 
-  itDelete(a); itDelete(b);
+  iaDelete(a); iaDelete(b);
   
-  a = itCreateString("7777777");
-  stringPartUtf8(a, &b, 2, 1);
-  itPrint(a); printf(" "); itPrintLn(b);
+  a = iaCreateString("7777777");
+  b = stringPartUtf8(a, 2, 1);
+  iaPrint(a); printf(" "); iaPrintLn(b);
   if (strcmp(b->buf, "7")) {
-    printf("ERROR string part, expected >7<, got: "); itPrint(b);
+    printf("ERROR string part, expected >7<, got: "); iaPrint(b);
     errs+=1;
   } else {
     oks+=1;
@@ -209,164 +212,29 @@ int main(int argc, char *argv[]) {
   } else {
     oks += 1;
   }
-  itDelete(a); itDelete(b);
+  iaDelete(a);
+  iaDelete(b);
 
-  a = itCreateString("for|you|more");
-  IndraEntArray *ar;
-  b = itCreateString("|");
+  a = iaCreateString("for|you|more");
+  IndraAtom *ar;
+  b = iaCreateString("|");
   ar = stringSplitUtf8(a, b);
-  itArrayPrintLn(ar);
+  iaPrintLn(ar);
   
-  itDelete(a);
-  itDelete(b);
-  itArrayDelete(ar);
+  iaDelete(a);
+  iaDelete(b);
+  iaDelete(ar);
 
   for (unsigned long i=0; i<sizeof(test2)/sizeof(TokParseTest); i++) {
     printf("Tokparse >%s< token >%s<\n", test2[i].str, test2[i].tok);
-    a = itCreateString(test2[i].str);
-    b = itCreateString(test2[i].tok);
+    a = iaCreateString(test2[i].str);
+    b = iaCreateString(test2[i].tok);
     ar = stringSplitUtf8(a, b);
-    itArrayPrintLn(ar);
-    itDelete(a);
-    itDelete(b);
-    itArrayDelete(ar);    
+    iaPrintLn(ar);
+    iaDelete(a);
+    iaDelete(b);
+    iaDelete(ar);    
   }
-
-  printf("\nMaps:\n");
-  IndraEntMap *piem = itMapCreate(IT_STRING, IT_STRING);
-  a = itCreateString("Hello");
-  b = itCreateString("World");
-  itMapSet(piem, a, b); // Bad API, delete/moves a, b
-  itDelete(a);
-  itMapPrint(piem);
-  a = itCreateString("Hello");
-  c = itMapGet(piem, a);
-  printf("MapGet: "); itPrintLn(c);
-  itDelete(a);
-  itDelete(b);
-
-  a = itCreateString("Hello");
-  b = itCreateString("Universe");
-  itMapSet(piem, a, b); // Bad API, delete/moves a, b
-  itDelete(a);
-  itMapPrint(piem);
-  a = itCreateString("Hello");
-  c = itMapGet(piem, a);
-  printf("MapGet: "); itPrintLn(c);
-  itDelete(a);
-  itDelete(b);
-
-  a = itCreateString("Hum");
-  b = itCreateString("Bug");
-  itMapSet(piem, a, b); // Bad API, delete/moves a, b
-  itDelete(a);
-  itMapPrint(piem);
-  a = itCreateString("Hum");
-  c = itMapGet(piem, a);
-  printf("MapGet: "); itPrintLn(c);
-  itDelete(a);
-  itDelete(b);
-
-  printf("Create more:\n");
-  for (unsigned long i=0; i<sizeof(test2)/sizeof(TokParseTest); i++) {
-    a = itCreateString(test2[i].str);
-    b = itCreateString(test2[i].tok);
-    itMapSet(piem, a, b);
-    itDelete(a);
-    itDelete(b);
-  }
-  itMapPrint(piem);
-  printf("Delete them:\n");
-  for (unsigned long i=0; i<sizeof(test2)/sizeof(TokParseTest); i++) {
-    a = itCreateString(test2[i].str);
-    itMapRemove(piem, a);
-    itDelete(a);
-  }
-  itMapPrint(piem);
-  
-  itMapDelete(piem);
-
-
-
-  unsigned long N=10000;
-  printf("Creating map N=%lu:\n", N);
-  piem = itMapCreateHash(IT_ULONG, IT_ULONG, IT_HASH_SIMPLE);
-  for (unsigned long i=0; i<N; i++) {
-    a = itCreateULong(i);
-    b = itCreateULong(i);
-    itMapSet(piem, a, b);
-    itDelete(a);
-    itDelete(b);
-  }
-  unsigned long hash_clashes =0;
-  for (unsigned long i=0; i<piem->pHash->count-1; i++) {
-    if (*((unsigned long *)(piem->pHash->ieArray[i].buf)) == *((unsigned long *)(piem->pHash->ieArray[i+1].buf))) ++hash_clashes;
-  }
-  //itMapPrint(piem);
-  printf("Hash clashes: %lu\n", hash_clashes);
-  printf("Checking map N=%lu:\n", N);
-  for (unsigned long i=0; i<N; i++) {
-    a = itCreateULong(i);
-    b = itMapGet(piem, a);
-    if (b && *(long *)b->buf == i) {
-      oks += 1;
-      itDelete(a);
-      a = itCreateULong(i);
-      itMapRemove(piem, a);
-    } else {
-      errs += 1;
-    }
-    itDelete(a);
-  }
-  printf("Map:\n"); itMapPrint(piem);
-  itMapDelete(piem);
-
-  N=10;
-  for (int r=0; r<5; r++) {
-    gettimeofday(&start, NULL);
-    printf("Creating map N=%lu:\n", N);
-    piem = itMapCreateHash(IT_ULONG, IT_ULONG, IT_HASH_SIMPLE);
-    for (unsigned long i=0; i<N; i++) {
-      a = itCreateULong(i);
-      b = itCreateULong(i);
-      itMapSet(piem, a, b);
-      itDelete(a);
-      itDelete(b);
-    }
-    gettimeofday(&stop, NULL);
-    double dt = (double)((stop.tv_sec - start.tv_sec) * (long)1000000 + stop.tv_usec - start.tv_usec)/(double)N;
-    printf("WRITE: N=%ld, dt=%lf us\n", N, dt);
-    gettimeofday(&start, NULL);
-    printf("Updating map N=%lu:\n", N);
-    for (unsigned long i=0; i<N; i++) {
-      a = itCreateULong(i);
-      b = itCreateULong(i*2);
-      itMapSet(piem, a, b);
-      itDelete(a);
-      itDelete(b);
-    }
-    gettimeofday(&stop, NULL);
-    dt = (double)((stop.tv_sec - start.tv_sec) * (long)1000000 + stop.tv_usec - start.tv_usec)/(double)N;
-    printf("WRITE (update): N=%ld, dt=%lf us\n", N, dt);
-    printf("Checking map N=%lu:\n", N);
-    gettimeofday(&start, NULL);
-    for (unsigned long i=0; i<N; i++) {
-      a = itCreateULong(i);
-      b = itMapGet(piem, a);
-      if (b && *(unsigned long *)b->buf == i*2) {
-        oks += 1;
-      } else {
-        errs += 1;
-      }
-      itDelete(a);
-    }
-    gettimeofday(&stop, NULL);
-    dt = (double)((stop.tv_sec - start.tv_sec) * 1000000 + stop.tv_usec - start.tv_usec)/(double)N;
-    printf("READ: N=%ld, dt=%lf us\n", N, dt);
-    N = N * 10;
-    itMapDelete(piem);
-  }
-
 
   
   printf("\nErrors: %u, Oks: %u\n", errs, oks);

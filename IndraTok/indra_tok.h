@@ -15,6 +15,6 @@ bool stringValidateUtf8(const IndraAtom *source);
 unsigned int stringLenUtf8(const IndraAtom *source);
 int stringFindUtf8(const IndraAtom *source, const IndraAtom *token);
 long stringFindCountUtf8(const IndraAtom *source, const IndraAtom *token);
-void stringPartUtf8(const IndraAtom *source, IndraAtom **ppPart, unsigned int start, unsigned int len);
+IndraAtom* stringPartUtf8(const IndraAtom *source, unsigned int start, unsigned int len);
 void stringDisplayHex(const IndraAtom *source);
 IndraAtom* stringSplitUtf8(const IndraAtom *source, const IndraAtom *token);

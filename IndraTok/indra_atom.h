@@ -32,11 +32,6 @@ typedef struct _indra_atom_map {
 typedef struct _indra_atom_list {
 } IndraAtomList;
 
-const unsigned long indraTypesRecsize[] = {0, sizeof(char), sizeof(unsigned char),
-                                              sizeof(int), sizeof(unsigned int), sizeof(long), sizeof(unsigned long),
-                                              sizeof(float), sizeof(double), sizeof(unsigned char),
-                                              sizeof(IndraAtom), sizeof(IndraAtomMap), sizeof(IndraAtomList)};
-
 typedef enum _indra_hash_type {IA_HASH_CRC16, IA_HASH_SIMPLE} IndraHashTypes;
 
 typedef struct _indra_old_ent_map {
@@ -68,7 +63,7 @@ bool iaArrayAppend(IndraAtom **ppia, const void *buf);
 bool iaArrayRemove(IndraAtom *pia, unsigned long index);
 bool iaArrayInsert(IndraAtom **ppia, unsigned long index, const void *buf);
 bool iaJoin(IndraAtom **ppiaRoot, const IndraAtom *piaAppendix);
-IndraAtom *iaSlice(IndraAtom *pia, unsigned long start, unsigned long length);
+IndraAtom *iaSlice(const IndraAtom *pia, unsigned long start, unsigned long length);
 
 void iaPrint(const IndraAtom *pia);
 void iaPrintLn(const IndraAtom *pia);
