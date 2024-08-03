@@ -67,6 +67,8 @@ bool iaArraySetGrow(IndraAtom **pia, unsigned long index, const void *buf);
 bool iaArrayAppend(IndraAtom **ppia, const void *buf);
 bool iaArrayRemove(IndraAtom *pia, unsigned long index);
 bool iaArrayInsert(IndraAtom **ppia, unsigned long index, const void *buf);
+bool iaJoin(IndraAtom **ppiaRoot, const IndraAtom *piaAppendix);
+IndraAtom *iaSlice(IndraAtom *pia, unsigned long start, unsigned long length);
 
 void iaPrint(const IndraAtom *pia);
 void iaPrintLn(const IndraAtom *pia);
