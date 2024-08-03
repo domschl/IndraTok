@@ -111,7 +111,7 @@ bool stringValidateUtf8(const IndraAtom *source) {
 unsigned int stringLenUtf8(const IndraAtom *source) {
   if (source==NULL) return 0;
   if (source->buf==NULL) return 0;
-  if (source->type != IA_CHAR) return false;
+  if (source->type != IA_CHAR) return 0;
   unsigned int n=0, charLen;
   for (unsigned int i=0; i<source->count; i++) {
     charLen = utf8CharLen(((unsigned char *)source->buf)[i]);
@@ -228,9 +228,10 @@ IndraAtom *stringSplitUtf8(const IndraAtom *source, const IndraAtom *token) {
     if (l == token->count) {
       if (fnd - part_start > 0 || insertEmpty) {
         IndraAtom *prt = iaSlice(source, part_start, fnd-part_start);
-        printf("tok: >"); iaPrint(prt); printf("<\n");
+        //printf("tok1: >"); iaPrint(prt); printf("<\n");
         if (pParts == NULL) pParts = iaCreate(IA_ATOM, prt, 1, 4);
         else iaJoin(&pParts, prt);
+        iaDelete(prt);
       }
       cnt += 1;
       l = 0;
@@ -251,27 +252,32 @@ IndraAtom *stringSplitUtf8(const IndraAtom *source, const IndraAtom *token) {
       fnd = -1;
       continue;
     }
-    if (fnd == -1) fnd = s;
+    if (fnd == -1) {
+      fnd = s;
+      //part_start = s;
+    }
     l += 1;
   }
   if (l >= token->count) {
     if (fnd - part_start > 0 || insertEmpty) {
       IndraAtom *prt = iaSlice(source, part_start, fnd-part_start);
-        printf("tok: >"); iaPrint(prt); printf("<\n");
+      //printf("tok2: >"); iaPrint(prt); printf("<\n");
       if (pParts == NULL) pParts = iaCreate(IA_ATOM, prt, 1, 1);
       else iaJoin(&pParts, prt);
+      iaDelete(prt);
     }
     cnt += 1;
-    printf("Final found at %ld end: %ld\n", fnd, cnt);
+    //printf("Final found at %ld end: %ld\n", fnd, cnt);
   } else {
     if (fnd - part_start > 0 || insertEmpty) {
       IndraAtom *prt = iaSlice(source, part_start, source->count-part_start);
-        printf("tok: >"); iaPrint(prt); printf("<\n");
+      //printf("tok3: >"); iaPrint(prt); printf("<\n");
       if (pParts == NULL) pParts = iaCreate(IA_ATOM, prt, 1, 1);
       else iaJoin(&pParts, prt);
+      iaDelete(prt);
     }
   }
-  printf("Split-count: %lu\n", pParts->count);
+  //printf("Split-count: %lu\n", pParts->count);
   return pParts;
 }
 

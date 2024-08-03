@@ -23,7 +23,8 @@ typedef struct _char_conv_test {
   unsigned long utf8Len;
 } CharConvTest;
 
-CharConvTest test1[] = {{ "Smörö", 5}, {"རྒྱུད་", 6}, {"", 0}, {"𐍈", 1}, {"😁", 1}};
+CharConvTest test1[] = {{ "Smörö", 5}, {"རྒྱུད་", 6}, {"", 0},
+                    {"𐍈", 1}, {"😁", 1}};
 
 typedef struct _tok_parse_test {
   char *str;
@@ -93,6 +94,8 @@ int main(int argc, char *argv[]) {
       oks += 1;
     }
     iaJoin(&c, a); sum+=test1[i].utf8Len;
+    iaDelete(a);
+    a = iaCreateString(test1[i].charString);
     stringDisplayHex(a);
     unsigned long len=stringLenUtf8(a);
     if (len != test1[i].utf8Len) {
@@ -220,7 +223,6 @@ int main(int argc, char *argv[]) {
   b = iaCreateString("|");
   ar = stringSplitUtf8(a, b);
 
-  // exit(0);
 
 
   iaPrintLn(ar);
@@ -228,6 +230,7 @@ int main(int argc, char *argv[]) {
   iaDelete(a);
   iaDelete(b);
   iaDelete(ar);
+  // exit(0);
 
   for (unsigned long i=0; i<sizeof(test2)/sizeof(TokParseTest); i++) {
     printf("Tokparse >%s< token >%s<\n", test2[i].str, test2[i].tok);

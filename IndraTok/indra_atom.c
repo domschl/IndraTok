@@ -14,6 +14,13 @@ const unsigned long indraTypesRecsize[] = {0, sizeof(char), sizeof(unsigned char
 void iaDelete(IndraAtom *pia) {
   if (pia == NULL) return;
   if (pia->type != IA_NIL && pia->buf != NULL) {
+    if (pia->type == IA_ATOM) {
+      IndraAtom *pias = (IndraAtom *)pia->buf;
+      // XXX This won't work for nested dim>2 arrays!
+      for (unsigned long i=0; i<pia->count; i++) {
+        if (pias[i].buf != NULL) free(pias[i].buf);
+      }
+    }
     free(pia->buf);
   }
   free(pia);
@@ -219,12 +226,25 @@ IndraAtom *iaCreate(IndraTypes type, void *buf, unsigned long count, unsigned lo
   pia->type = type;
   pia->recsize = indraTypesRecsize[type];
   if (capacity < count) capacity = count;
-  if (capacity < 4) capacity = 4;
   pia->count = count;
   pia->capacity = capacity;
+
   pia->buf = malloc(pia->recsize * pia->capacity);
   // printf("Alloc: count=%lu, capa=%lu, recsize=%lu, type: %d\n", pia->count, pia->capacity, pia->recsize, pia->type);
   if (pia->count > 0) memcpy(pia->buf, buf, pia->recsize * pia->count);
+  if (pia->type == IA_ATOM) {
+    IndraAtom *src = (IndraAtom *)buf;
+    IndraAtom *dest = (IndraAtom *)(pia->buf);
+    // XXX won't work for nested dim>2!
+    for (unsigned long j=0; j<count; j++) {
+      if (src[j].count > 0) {
+        dest[j].buf = malloc(src[j].recsize * src[j].count);
+        memcpy(dest[j].buf, src[j].buf, src[j].recsize * src[j].count);
+      } else {
+        dest[j].buf = NULL;
+      }
+    }
+  }
   if (capacity > count) {
     memset(&((char *)pia->buf)[pia->recsize * pia->count], 0, pia->recsize * (capacity - count));
   }
@@ -272,12 +292,13 @@ void iaPrint(const IndraAtom *pia) {
       printf("<NOT_IMPL>");
       break;
     case IA_ATOM:
-      printf("[");
-      for (uint j=0; j<pia->count; j++) {
-        iaPrint(&((const IndraAtom *)pia->buf)[j]);
-        if (j!=pia->count -1) printf(", ");
-      }
-      printf("]");
+      iaPrint(&((IndraAtom *)pia->buf)[i]);
+      //printf("[");
+      //for (uint j=0; j<pia->count; j++) {
+      //  iaPrint(&((const IndraAtom *)pia->buf)[j]);
+      //  if (j!=pia->count -1) printf(", ");
+      //}
+      //printf("]");
       break;
     case IA_MAP:
     case IA_LIST:
@@ -289,7 +310,7 @@ void iaPrint(const IndraAtom *pia) {
     }
   }
   if (pia->type==IA_CHAR) printf("\"");
-  else if (pia->count > 1) printf("]");
+  else if (pia->count > 1 ) printf("]");
 }
 
 void iaPrintLn(const IndraAtom *pia) {
@@ -346,32 +367,46 @@ bool iaJoin(IndraAtom **ppiaRoot, const IndraAtom *piaAppendix) {
   if (ppiaRoot==NULL || *ppiaRoot==NULL || piaAppendix==NULL) return false;
   if ((*ppiaRoot)->type != piaAppendix->type && (*ppiaRoot)->type != IA_ATOM) return false;
   unsigned long old_count = (*ppiaRoot)->count;
-  unsigned long new_count, new_capa;
+  unsigned long new_count, new_capa, move_count;
   if ((*ppiaRoot)->type == IA_ATOM) {
     if (piaAppendix->type == IA_ATOM) {
       new_count = old_count + piaAppendix->count;
       new_capa = old_count + piaAppendix->count;
+      move_count = piaAppendix->count;
     } else {
       new_count = old_count + 1;
       new_capa = old_count + 1;
+      move_count = 1;
     }
   } else {
     new_count = old_count + piaAppendix->count;
     new_capa = old_count + piaAppendix->count;
+    move_count = piaAppendix->count;
   }
   if ((*ppiaRoot)->type == IA_CHAR) new_capa += 1; 
   if (new_capa > (*ppiaRoot)->capacity) {
-    *ppiaRoot = iaResize(ppiaRoot, new_capa);
+    *ppiaRoot = iaResize(ppiaRoot, new_capa * 2);
     if (*ppiaRoot == NULL) return false;
-    printf("RESIZE: type: %d, recsize:%lu, count:%lu, capa:%lu\n", (*ppiaRoot)->type, (*ppiaRoot)->recsize, (*ppiaRoot)->count, (*ppiaRoot)->capacity);
   }
   if ((*ppiaRoot)->type == IA_ATOM) {
-    unsigned long m_count = 1;
-    if (piaAppendix->type == IA_ATOM) m_count = piaAppendix->count; 
-    memcpy(&(((unsigned char *)((*ppiaRoot)->buf))[old_count * (*ppiaRoot)->recsize]), piaAppendix, m_count * (*ppiaRoot)->recsize);
+    memcpy(&((unsigned char *)((*ppiaRoot)->buf))[old_count * (*ppiaRoot)->recsize], piaAppendix, move_count * (*ppiaRoot)->recsize);
+    // XXX won't work for nested dim>2!
+    for (unsigned long j=0; j<move_count; j++) {
+      IndraAtom *piaNew = &((IndraAtom *)((*ppiaRoot)->buf))[old_count + j];
+      IndraAtom *piaSrc = &(((IndraAtom *)piaAppendix)[j]);
+      if (piaAppendix[j].count > 0) {
+      piaNew->buf = malloc(piaAppendix[j].count * piaAppendix[j].recsize);
+      memcpy(piaNew->buf, piaSrc->buf, piaAppendix[j].count * piaAppendix[j].recsize);
+      } else {
+        piaNew->buf = NULL;
+      }
+    }
   } else {
-    memcpy(&(((unsigned char *)((*ppiaRoot)->buf))[old_count * (*ppiaRoot)->recsize]), piaAppendix->buf, piaAppendix->count * (*ppiaRoot)->recsize);
+    memcpy(&((unsigned char *)((*ppiaRoot)->buf))[old_count * (*ppiaRoot)->recsize], piaAppendix->buf, piaAppendix->count * (*ppiaRoot)->recsize);
   }
+  //piaAppendix->buf = NULL;
+  //piaAppendix->count = 0;
+  //piaAppendix->capacity = 0;
   (*ppiaRoot)->count = new_count;
   if ((*ppiaRoot)->type == IA_CHAR) ((char *)(*ppiaRoot)->buf)[new_count] = 0;
   return true;
@@ -383,7 +418,7 @@ IndraAtom *iaSlice(const IndraAtom *pia, unsigned long index, unsigned long coun
   unsigned long capa = count;
   if (pia->type == IA_CHAR) capa += 1;
   // printf("Slice, SOURCE; count:%lu, capa:%lu | DEST: count:%lu, capa:%lu\n", pia->count, pia->capacity, count, capa);
-  IndraAtom* piaSlice = iaCreate(pia->type, &(((unsigned char *)(pia->buf))[index * pia->recsize]), count, capa);
+  IndraAtom* piaSlice = iaCreate(pia->type, &((unsigned char *)(pia->buf))[index * pia->recsize], count, capa);
   if (piaSlice->type == IA_CHAR) ((char *)piaSlice->buf)[piaSlice->count]=0;
   return piaSlice;
 }
