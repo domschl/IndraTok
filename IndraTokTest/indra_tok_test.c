@@ -49,9 +49,9 @@ int main(int argc, char *argv[]) {
   } else {
     oks += 1;
   }
-  // printf("String: "); stringPrintLn(&a); printf(" | Part 5,3: ");
+  //printf("String: "); iaPrint(a); printf(" | Part 5,3: ");
   b = stringPartUtf8(a, 5, 3);
-  // stringPrintLn(&b);
+  iaPrintLn(b);
   if (b==NULL || b->buf == NULL) {
     errs += 1;
     printf("ERROR: failed to get part\n");
@@ -214,11 +214,15 @@ int main(int argc, char *argv[]) {
   }
   iaDelete(a);
   iaDelete(b);
-
+  
   a = iaCreateString("for|you|more");
   IndraAtom *ar;
   b = iaCreateString("|");
   ar = stringSplitUtf8(a, b);
+
+  // exit(0);
+
+
   iaPrintLn(ar);
   
   iaDelete(a);

@@ -218,11 +218,16 @@ IndraAtom *iaCreate(IndraTypes type, void *buf, unsigned long count, unsigned lo
   memset(pia, 0, sizeof(IndraAtom));
   pia->type = type;
   pia->recsize = indraTypesRecsize[type];
+  if (capacity < count) capacity = count;
+  if (capacity < 4) capacity = 4;
   pia->count = count;
-  unsigned long len = pia->recsize * count;
-  pia->capacity = pia->count;
+  pia->capacity = capacity;
   pia->buf = malloc(pia->recsize * pia->capacity);
-  memcpy(pia->buf, buf, pia->recsize * pia->count);
+  // printf("Alloc: count=%lu, capa=%lu, recsize=%lu, type: %d\n", pia->count, pia->capacity, pia->recsize, pia->type);
+  if (pia->count > 0) memcpy(pia->buf, buf, pia->recsize * pia->count);
+  if (capacity > count) {
+    memset(&((char *)pia->buf)[pia->recsize * pia->count], 0, pia->recsize * (capacity - count));
+  }
   return pia;
 }
 
@@ -231,10 +236,9 @@ void iaPrint(const IndraAtom *pia) {
     printf("<NULL>");
     return;
   }
-  if (pia->count > 1) {
-    if (pia->type==IA_CHAR) printf("\"");
-    else printf("[");
-  }
+  if (pia->type==IA_CHAR) printf("\"");
+  else if (pia->count > 1) printf("[");
+  
   for (unsigned long i=0; i<pia->count; i++) {
     switch (pia->type) {
     case IA_NIL:
@@ -284,10 +288,8 @@ void iaPrint(const IndraAtom *pia) {
       if (pia->type != IA_CHAR) printf(", ");
     }
   }
-  if (pia->count > 1) {
-    if (pia->type==IA_CHAR) printf("\"");
-    else printf("]");
-  }
+  if (pia->type==IA_CHAR) printf("\"");
+  else if (pia->count > 1) printf("]");
 }
 
 void iaPrintLn(const IndraAtom *pia) {
@@ -342,16 +344,34 @@ bool iaArrayAppend(IndraAtom **ppia, const void *buf) {
 
 bool iaJoin(IndraAtom **ppiaRoot, const IndraAtom *piaAppendix) {
   if (ppiaRoot==NULL || *ppiaRoot==NULL || piaAppendix==NULL) return false;
-  if ((*ppiaRoot)->type != piaAppendix->type) return false;
+  if ((*ppiaRoot)->type != piaAppendix->type && (*ppiaRoot)->type != IA_ATOM) return false;
   unsigned long old_count = (*ppiaRoot)->count;
-  unsigned long new_count = old_count + piaAppendix->count;
-  unsigned long new_capa = old_count + piaAppendix->count;
+  unsigned long new_count, new_capa;
+  if ((*ppiaRoot)->type == IA_ATOM) {
+    if (piaAppendix->type == IA_ATOM) {
+      new_count = old_count + piaAppendix->count;
+      new_capa = old_count + piaAppendix->count;
+    } else {
+      new_count = old_count + 1;
+      new_capa = old_count + 1;
+    }
+  } else {
+    new_count = old_count + piaAppendix->count;
+    new_capa = old_count + piaAppendix->count;
+  }
   if ((*ppiaRoot)->type == IA_CHAR) new_capa += 1; 
   if (new_capa > (*ppiaRoot)->capacity) {
     *ppiaRoot = iaResize(ppiaRoot, new_capa);
     if (*ppiaRoot == NULL) return false;
+    printf("RESIZE: type: %d, recsize:%lu, count:%lu, capa:%lu\n", (*ppiaRoot)->type, (*ppiaRoot)->recsize, (*ppiaRoot)->count, (*ppiaRoot)->capacity);
   }
-  memcpy(&(((unsigned char *)((*ppiaRoot)->buf))[old_count * (*ppiaRoot)->recsize]), piaAppendix->buf, piaAppendix->count * (*ppiaRoot)->recsize);
+  if ((*ppiaRoot)->type == IA_ATOM) {
+    unsigned long m_count = 1;
+    if (piaAppendix->type == IA_ATOM) m_count = piaAppendix->count; 
+    memcpy(&(((unsigned char *)((*ppiaRoot)->buf))[old_count * (*ppiaRoot)->recsize]), piaAppendix, m_count * (*ppiaRoot)->recsize);
+  } else {
+    memcpy(&(((unsigned char *)((*ppiaRoot)->buf))[old_count * (*ppiaRoot)->recsize]), piaAppendix->buf, piaAppendix->count * (*ppiaRoot)->recsize);
+  }
   (*ppiaRoot)->count = new_count;
   if ((*ppiaRoot)->type == IA_CHAR) ((char *)(*ppiaRoot)->buf)[new_count] = 0;
   return true;
@@ -362,6 +382,7 @@ IndraAtom *iaSlice(const IndraAtom *pia, unsigned long index, unsigned long coun
   if (index + count > pia->count) return NULL;
   unsigned long capa = count;
   if (pia->type == IA_CHAR) capa += 1;
+  // printf("Slice, SOURCE; count:%lu, capa:%lu | DEST: count:%lu, capa:%lu\n", pia->count, pia->capacity, count, capa);
   IndraAtom* piaSlice = iaCreate(pia->type, &(((unsigned char *)(pia->buf))[index * pia->recsize]), count, capa);
   if (piaSlice->type == IA_CHAR) ((char *)piaSlice->buf)[piaSlice->count]=0;
   return piaSlice;

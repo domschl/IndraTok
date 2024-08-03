@@ -214,7 +214,7 @@ IndraAtom *stringPartUtf8(const IndraAtom *source, unsigned int start, unsigned 
 }
 
 IndraAtom *stringSplitUtf8(const IndraAtom *source, const IndraAtom *token) {
-  if (token==NULL) return NULL;
+  if (token==NULL || *(char *)(token->buf)==0) return NULL;
   if (source==NULL) return NULL;
   if (source->type != IA_CHAR || token->type != IA_CHAR) return NULL;
 
@@ -228,8 +228,8 @@ IndraAtom *stringSplitUtf8(const IndraAtom *source, const IndraAtom *token) {
     if (l == token->count) {
       if (fnd - part_start > 0 || insertEmpty) {
         IndraAtom *prt = iaSlice(source, part_start, fnd-part_start);
-        //printf("tok: "); itPrintLn(prt);
-        if (pParts == NULL) pParts = prt;
+        printf("tok: >"); iaPrint(prt); printf("<\n");
+        if (pParts == NULL) pParts = iaCreate(IA_ATOM, prt, 1, 4);
         else iaJoin(&pParts, prt);
       }
       cnt += 1;
@@ -257,20 +257,21 @@ IndraAtom *stringSplitUtf8(const IndraAtom *source, const IndraAtom *token) {
   if (l >= token->count) {
     if (fnd - part_start > 0 || insertEmpty) {
       IndraAtom *prt = iaSlice(source, part_start, fnd-part_start);
-      //printf("tok: "); itPrintLn(prt);
-      if (pParts == NULL) pParts = prt;
+        printf("tok: >"); iaPrint(prt); printf("<\n");
+      if (pParts == NULL) pParts = iaCreate(IA_ATOM, prt, 1, 1);
       else iaJoin(&pParts, prt);
     }
     cnt += 1;
-    //printf("Final found at %ld end: %ld\n", fnd, cnt);
+    printf("Final found at %ld end: %ld\n", fnd, cnt);
   } else {
     if (fnd - part_start > 0 || insertEmpty) {
       IndraAtom *prt = iaSlice(source, part_start, source->count-part_start);
-      //printf("tok: "); itPrintLn(prt);
-      if (pParts == NULL) pParts = prt;
+        printf("tok: >"); iaPrint(prt); printf("<\n");
+      if (pParts == NULL) pParts = iaCreate(IA_ATOM, prt, 1, 1);
       else iaJoin(&pParts, prt);
     }
   }
+  printf("Split-count: %lu\n", pParts->count);
   return pParts;
 }
 
