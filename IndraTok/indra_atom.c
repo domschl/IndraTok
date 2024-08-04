@@ -16,12 +16,17 @@ void iaDelete(IndraAtom *pia) {
   if (pia->type != IA_NIL && pia->buf != NULL) {
     if (pia->type == IA_ATOM) {
       IndraAtom *pias = (IndraAtom *)pia->buf;
-      // XXX This won't work for nested dim>2 arrays!
       for (unsigned long i=0; i<pia->count; i++) {
-        if (pias[i].buf != NULL) free(pias[i].buf);
+        if (pias->type == IA_ATOM) {
+          iaDelete(&pias[i]);
+        } else {
+          if (pias[i].buf != NULL) free(pias[i].buf);
+        }
       }
+      free(pia->buf);
+    } else {
+      free(pia->buf);
     }
-    free(pia->buf);
   }
   free(pia);
 }
