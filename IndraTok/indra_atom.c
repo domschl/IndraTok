@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "indra_atom.h"
@@ -7,7 +8,7 @@ void iaDelete(IA_T_ATOM *pAtom) {
     free(pAtom->data.pHeap);
   } else if (pAtom->type == IA_ID_ATOM) {
     for (uint64_t i=0; i<pAtom->count; i++) {
-      iaDelete(&(((IA_T_ATOM *)(pAtom->data.pHeap->pData))[i]));
+      iaDelete((((IA_T_ATOM *)(&(pAtom->data.pHeap->data))[i])));
     }
     free(pAtom->data.pHeap);
   } else {
@@ -25,13 +26,17 @@ void iaSet(IA_T_ATOM *pAtom, int type, uint64_t recsize, uint64_t count, void *p
     return;
   }
   pAtom->count = count;
+  printf("Setting %ld elements of type %d, stackMax: %ld\n", count, type, iaStackMax[type]);
   if (count > iaStackMax[type]) {
+    printf("Allocating %ld bytes\n", sizeof(IA_T_HEAP_HEADER)+recsize*count);
     pAtom->onHeap = 1;
     pAtom->data.pHeap = (IA_T_HEAP *)malloc(sizeof(IA_T_HEAP_HEADER)+recsize*count);
     pAtom->data.pHeap->capacity = count;
     pAtom->data.pHeap->recsize = recsize;
-    memcpy(pAtom->data.pHeap->pData, pData, recsize*count);
+    printf("Copying %ld bytes\n", recsize*count);
+    memcpy(&(pAtom->data.pHeap->data), pData, recsize*count);
   } else {
+    printf("Using stack for %ld bytes\n", recsize*count);
     memcpy(pAtom->data.c, pData, recsize*count);
   }
 }
@@ -78,3 +83,20 @@ void iaSetDouble(IA_T_ATOM *pAtom, double value) {
   pAtom->data.d[0] = value;
 }
   
+void iaSetString(IA_T_ATOM *pAtom, char *pString) {
+  iaSet(pAtom, IA_ID_CHAR, sizeof(uint8_t), strlen(pString)+1, pString);
+}
+
+void *iaGetDataPtr(IA_T_ATOM *pAtom) {
+  if (pAtom->type == IA_ID_PANY) {
+    return (void *)&(pAtom->data.pHeap->data);
+  } else if (pAtom->type == IA_ID_ATOM) {
+    return pAtom->data.pHeap;
+  } else {
+    if (pAtom->onHeap) {
+      return (void *)&(pAtom->data.pHeap->data);
+    } else {
+      return &pAtom->data;
+    }
+  }
+}

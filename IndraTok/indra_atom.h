@@ -15,7 +15,7 @@ typedef struct _ia_t_heap_header {
 typedef struct _ia_t_heap {
   uint64_t capacity;
   uint64_t recsize;
-  void *pData;
+  uint64_t data;  // dummy
 } IA_T_HEAP;
 
 // Stack preference: the higher the number, the more data is stored on the stack
@@ -30,14 +30,14 @@ typedef struct _ia_atom IA_T_ATOM;
 
 // This defines the maximum array count of elements that are stored on the stack
 // If the count is greater than this, the data is stored on the heap using the IA_SUBATOM struct
-#define IA_STACK_CHARS  (sizeof(uint8_t)*IA_STACK_PREFERENCE/sizeof(void *))
-#define IA_STACK_WORDS  (sizeof(uint16_t)*IA_STACK_PREFERENCE/sizeof(void *))
-#define IA_STACK_INTS   (sizeof(uint32_t)*IA_STACK_PREFERENCE/sizeof(void *))
-#define IA_STACK_LONGS  (sizeof(uint64_t)*IA_STACK_PREFERENCE/sizeof(void *))
-#define IA_STACK_FLOATS (sizeof(float)*IA_STACK_PREFERENCE/sizeof(void *))
-#define IA_STACK_DOUBLES (sizeof(double)*IA_STACK_PREFERENCE/sizeof(void *))
+#define IA_STACK_CHARS  (sizeof(void *) *IA_STACK_PREFERENCE / sizeof(uint8_t))
+#define IA_STACK_WORDS  (sizeof(void *) *IA_STACK_PREFERENCE / sizeof(uint16_t))
+#define IA_STACK_INTS   (sizeof(void *) *IA_STACK_PREFERENCE / sizeof(uint32_t))
+#define IA_STACK_LONGS  (sizeof(void *) *IA_STACK_PREFERENCE / sizeof(uint64_t))
+#define IA_STACK_FLOATS (sizeof(void *) *IA_STACK_PREFERENCE / sizeof(float))
+#define IA_STACK_DOUBLES (sizeof(void *) *IA_STACK_PREFERENCE / sizeof(double))
 
-const unsigned long iaStackMax[IA_ID_PANY+1] = {0, IA_STACK_CHARS, IA_STACK_WORDS, IA_STACK_INTS, IA_STACK_LONGS, IA_STACK_FLOATS, IA_STACK_DOUBLES, 0, 0};
+const unsigned long iaStackMax[] = {0, IA_STACK_CHARS, IA_STACK_WORDS, IA_STACK_INTS, IA_STACK_LONGS, IA_STACK_FLOATS, IA_STACK_DOUBLES, 0, 0};
 
 //* Std struct
 struct _ia_atom {
@@ -57,3 +57,18 @@ struct _ia_atom {
 };
 
 const unsigned long iaTypesize[IA_ID_PANY+1] = {0, sizeof(uint8_t), sizeof(uint16_t), sizeof(uint32_t), sizeof(uint64_t), sizeof(float), sizeof(double), sizeof(struct _ia_atom), sizeof(void *)};
+
+void iaDelete(IA_T_ATOM *pAtom);
+void iaSet(IA_T_ATOM *pAtom, int type, uint64_t recsize, uint64_t count, void *pData);
+void iaSetChar(IA_T_ATOM *pAtom, uint8_t value);
+void iaSetWord(IA_T_ATOM *pAtom, uint16_t value);
+void iaSetInt(IA_T_ATOM *pAtom, uint32_t value);
+void iaSetLong(IA_T_ATOM *pAtom, uint64_t value);
+void iaSetFloat(IA_T_ATOM *pAtom, float value);
+void iaSetDouble(IA_T_ATOM *pAtom, double value);
+void iaSetAtom(IA_T_ATOM *pAtom, IA_T_ATOM *pValue);
+void iaSetPany(IA_T_ATOM *pAtom, void *pValue);
+void iaSetNil(IA_T_ATOM *pAtom);
+
+void iaSetString(IA_T_ATOM *pAtom, char *pString);
+void *iaGetDataPtr(IA_T_ATOM *pAtom);
