@@ -8,6 +8,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 endif()
   
 add_subdirectory (IndraTok)
-add_subdirectory (IndraTokTest)
+add_subdirectory (IndraAtomTest)
 
 set_property(TARGET IndraTok PROPERTY C_STANDARD 11)
