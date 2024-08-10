@@ -1,82 +1,49 @@
-#pragma once
+//        7       6       5       4       3       2       1       0
+// 7654321076543210765432107654321076543210765432107654321076543210
+// |----
+// 1  2 
+#include <stdint.h>
 
-#include <stdbool.h>
+typedef enum types {NIL=0, CHAR=1, INT=2, LONG=3, FLOAT=4, DOUBLE=5, ARRAY=6, OBJECT=7} T_TYPES;
 
-typedef enum _indra_types {IA_NIL=0, IA_CHAR, IA_BYTE, IA_INT, IA_UINT, IA_LONG, IA_ULONG,
-                           IA_FLOAT, IA_DOUBLE, IA_INFNUM, IA_ATOM, IA_MAP, IA_LIST} IndraTypes;
-/*
-typedef struct _indra_ent {
-  void *buf;
-  IndraTypes type;
-  unsigned long len;
-} IndraEnt;
+// Heap data struct
+typedef struct _it_heap_atom {
+  uint64_t type;
+  uint64_t recsize;
+  uint64_t count;
+  uint64_t capacity;
+  void *pData;
+} IT_HEAP_ATOM;
 
-typedef struct _indra_ent_array {
-  IndraEnt *ieArray;
-  IndraTypes type;
-  unsigned long capacity;
-  unsigned long count;
-} IndraEntArray;
-*/
-typedef struct _indra_atom {
-  void *buf;
-  IndraTypes type;
-  unsigned long recsize;
-  unsigned long capacity;
-  unsigned long count;
-} IndraAtom;
+// Stack preference: the higher the number, the more data is stored on the stack
+// before using heap allocation. Default 1
+#define STACK_PREFERENCE 1
 
-typedef struct _indra_atom_map {
-} IndraAtomMap;
+// This defines the maximum array count of elements that are stored on the stack
+// If the count is greater than this, the data is stored on the heap using the IT_HEAP_ATOM struct
+#define IT_HEAP_ATOM_SIZE (sizeof(IT_HEAP_ATOM)*STACK_PREFERENCE)
+#define IT_STACK_DOUBLES (IT_HEAP_ATOM_SIZE/sizeof(double)*STACK_PREFERENCE)
+#define IT_STACK_FLOATS (IT_HEAP_ATOM_SIZE/sizeof(float)*STACK_PREFERENCE)
+#define IT_STACK_LONGS (IT_HEAP_ATOM_SIZE/sizeof(uint64_t)*STACK_PREFERENCE)
+#define IT_STACK_INTS (IT_HEAP_ATOM_SIZE/sizeof(uint32_t)*STACK_PREFERENCE)
+#define IT_STACK_WORDS (IT_HEAP_ATOM_SIZE/sizeof(uint16_t)*STACK_PREFERENCE)
+#define IT_STACK_CHARS (IT_HEAP_ATOM_SIZE/sizeof(uint8_t)*STACK_PREFERENCE)
+#define IT_STACK_ATOMS (IT_HEAP_ATOM_SIZE/sizeof(IT_HEAP_ATOM)*STACK_PREFERENCE)
 
-typedef struct _indra_atom_list {
-} IndraAtomList;
+//* Std struct
+typedef struct _it_atom {
+  uint64_t onHeap:1;  //* is on heap
+  uint64_t type:5;    //* data type
+  uint64_t count: sizeof(long)-(1+5);  //* count of elements, <=IT_STACK_* on stack, >IT_STACK_* on heap
+  //* actual data
+  union _data {
+    uint8_t c[IT_STACK_CHARS];
+    uint16_t w[IT_STACK_WORDS];
+    uint32_t i[IT_STACK_INTS];
+    uint64_t l[IT_STACK_LONGS];
+    float f[IT_STACK_FLOATS];
+    double d[IT_STACK_DOUBLES];
+    IT_HEAP_ATOM heap_atom[IT_STACK_ATOMS];
+  } dat;
+} IT_ATOM;
 
-typedef enum _indra_hash_type {IA_HASH_CRC16, IA_HASH_SIMPLE} IndraHashTypes;
-
-typedef struct _indra_old_ent_map {
-  IndraHashTypes hashType;
-  IndraAtom *pHash;
-  IndraAtom *pKeys;
-  IndraAtom *pValues;
-} IndraOldEntMap;
-
-void iaDelete(IndraAtom *pia);
-IndraAtom *iaCreateChar(char c);
-IndraAtom *iaCreateByte(unsigned char byte);
-IndraAtom *iaCreateBytes(const unsigned char bytes[], unsigned long len);
-IndraAtom *iaCreateString(const char str[]);
-IndraAtom *iaCreateStringFromSlice(const IndraAtom *bufByteString, unsigned long bufSliceStart, unsigned long bufSliceLength);
-IndraAtom *iaCreateInt(int i);
-IndraAtom *iaCreateUInt(unsigned int ui);
-IndraAtom *iaCreateLong(long l);
-IndraAtom *iaCreateULong(unsigned long ul);
-IndraAtom *iaCreateFloat(float f);
-IndraAtom *iaCreateDouble(double df);
-IndraAtom *iaCreate(IndraTypes type, void *buf, unsigned long count, unsigned long capacity);
-
-IndraAtom *iaResize(IndraAtom **ppia, unsigned long capacity);
-void *iaArrayGet(const IndraAtom *pia, unsigned long index);
-bool iaArraySet(IndraAtom *pia, unsigned long index, const void *buf);
-bool iaArraySetGrow(IndraAtom **pia, unsigned long index, const void *buf);
-bool iaArrayAppend(IndraAtom **ppia, const void *buf);
-bool iaArrayRemove(IndraAtom *pia, unsigned long index);
-bool iaArrayInsert(IndraAtom **ppia, unsigned long index, const void *buf);
-bool iaJoin(IndraAtom **ppiaRoot, const IndraAtom *piaAppendix);
-IndraAtom *iaSlice(const IndraAtom *pia, unsigned long start, unsigned long length);
-
-void iaPrint(const IndraAtom *pia);
-void iaPrintLn(const IndraAtom *pia);
-
-/*
-IndraOldEntMap *iaOldMapCreateHash(IndraTypes keyType, IndraTypes valueType, IndraHashTypes);
-IndraOldEntMap *iaOldMapCreate(IndraTypes keyType, IndraTypes valueType);
-void iaOldMapDelete(IndraOldEntMap *piam);
-long _itOldMapHashIndexGet(IndraOldEntMap *piam, IndraAtom *pKey, unsigned long *pHash);
-long _itOldMapIndexGet(IndraOldEntMap *piam, IndraAtom *pKey, unsigned long *pHash);
-bool iaOldMapSet(IndraOldEntMap *piam, IndraAtom *pKey, IndraAtom *pValue);
-IndraAtom* iaOldMapGet(IndraOldEntMap *piam, IndraAtom *pKey);
-bool iaOldMapExists(IndraOldEntMap *piam, IndraAtom *pKey);
-bool iaOldMapRemove(IndraOldEntMap *piam, IndraAtom *pKey);
-void iaOldMapPrint(IndraOldEntMap *piam);
-*/
