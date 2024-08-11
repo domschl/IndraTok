@@ -214,7 +214,9 @@ bool iaExpand(IA_T_ATOM *pAtom, size_t new_capacity) {
       pAtom->data.pHeap->capacity = new_capacity;
       pAtom->data.pHeap->recsize = recsize;
       printf("Moving %ld bytes from stack to heap\n", recsize*pAtom->count);
-      memcpy(&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]), &(OldAtom.data.c), recsize*pAtom->count);
+      void *pdest = iaGetHeapDataPtr(pAtom);
+      void *psrc = iaGetStackDataPtr(&OldAtom);
+      memcpy(pdest, psrc, recsize*pAtom->count);
       return true;
     }
   } else {
