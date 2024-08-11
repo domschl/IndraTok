@@ -8,7 +8,7 @@ void iaDelete(IA_T_ATOM *pAtom) {
     free(pAtom->data.pHeap);
   } else if (pAtom->type == IA_ID_ATOM) {
     for (uint64_t i=0; i<pAtom->count; i++) {
-      iaDelete((((IA_T_ATOM *)(&(pAtom->data.pHeap->data))[i])));
+        iaDelete(&(((IA_T_ATOM *)&(pAtom->data.pHeap->data))[i]));
     }
     free(pAtom->data.pHeap);
   } else {
@@ -97,6 +97,62 @@ void *iaGetDataPtr(IA_T_ATOM *pAtom) {
       return (void *)&(pAtom->data.pHeap->data);
     } else {
       return &pAtom->data;
+    }
+  }
+}
+
+void iaGetInd(IA_T_ATOM *pAtom, void **pdata, uint64_t index) {
+  if (index >= pAtom->count) {
+    *pdata = NULL;
+    return;
+  }
+  if (pAtom->type == IA_ID_PANY) {
+    *pdata = &((uint8_t *)&(pAtom->data.pHeap->data))[index*pAtom->data.pHeap->recsize];
+  } else if (pAtom->type == IA_ID_ATOM) {
+    *pdata = (void *)&(((IA_T_ATOM *)&(pAtom->data.pHeap->data))[index]);
+  } else {
+    if (pAtom->onHeap) {
+      *pdata = &((uint8_t *)&(pAtom->data.pHeap->data))[index*pAtom->data.pHeap->recsize];
+    } else {
+      *pdata = (void *)&(pAtom->data);
+    }
+  }  
+}
+
+void iaSetIndExpand(IA_T_ATOM *pAtom, uint64_t index, void *pData) {
+  if (index >= pAtom->count) {
+    if (pAtom->onHeap == 0) {
+      unsigned long recsize = iaTypesize[pAtom->type];
+      if (index < iaStackMax[pAtom->type]) {
+        pAtom->count = index+1;
+        memcpy(&((uint8_t *)&(pAtom->data))[index*recsize], pData, recsize);
+        return;
+      } else {
+        pAtom->onHeap = 1;
+        // new capacity is next larger power of 2 or index+1:
+        unsigned long new_capacity = (index+1) *2 - (index+1)%2;
+        if (new_capacity < 8) {
+          new_capacity = 8;
+        }
+        pAtom->data.pHeap = (IA_T_HEAP *)malloc(sizeof(IA_T_HEAP_HEADER)+recsize*new_capacity);
+        pAtom->data.pHeap->capacity = new_capacity;
+        pAtom->data.pHeap->recsize = recsize;
+        memcpy(&(pAtom->data.pHeap->data), pAtom->data.c, recsize*pAtom->count);
+      }
+      pAtom->count = index+1;
+    } else {
+      unsigned long recsize = pAtom->data.pHeap->recsize;
+      if (index >= pAtom->data.pHeap->capacity) {
+        unsigned long new_capacity = pAtom->data.pHeap->capacity*2;
+        IA_T_HEAP *pOldHeap = pAtom->data.pHeap;
+        pAtom->data.pHeap = (IA_T_HEAP *)realloc(pAtom->data.pHeap, sizeof(IA_T_HEAP_HEADER)+recsize*new_capacity);
+        pAtom->data.pHeap->capacity = new_capacity;
+        memcpy(&(pAtom->data.pHeap->data), &pOldHeap->data, recsize*pAtom->count);
+        free(pOldHeap);
+      } else {
+        memcpy(&((uint8_t *)&(pAtom->data.pHeap->data))[index*recsize], pData, recsize);
+      }
+      pAtom->count = index+1;
     }
   }
 }
