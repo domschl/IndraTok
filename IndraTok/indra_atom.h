@@ -71,7 +71,7 @@ void iaPrint(IA_T_ATOM *pAtom);
 
 bool iaSetString(IA_T_ATOM *pAtom, char *pString);
 void *iaGetDataPtr(IA_T_ATOM *pAtom);
-bool iaGetIndex(IA_T_ATOM *pAtom, void **pdata, size_t index);
+void *iaGetIndexPtr(IA_T_ATOM *pAtom, size_t index);
 bool iaExpand(IA_T_ATOM *pAtom, size_t new_capacity);
 bool iaSetIndex(IA_T_ATOM *pAtom, size_t index, void *pData);
 bool iaSetIndexExpand(IA_T_ATOM *pAtom, size_t index, void *pData);

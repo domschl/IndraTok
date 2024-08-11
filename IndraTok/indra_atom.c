@@ -157,23 +157,21 @@ void iaPrint(IA_T_ATOM *pAtom) {
   }
 }
 
-bool iaGetIndex(IA_T_ATOM *pAtom, void **pdata, size_t index) {
+void *iaGetIndexPtr(IA_T_ATOM *pAtom, size_t index) {
   if (index >= pAtom->count) {
-    *pdata = NULL;
-    return false;
+    return NULL;
   }
   if (pAtom->type == IA_ID_PANY) {
-    *pdata = &((&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]))[index*pAtom->data.pHeap->recsize]);
+    return &((&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]))[index*pAtom->data.pHeap->recsize]);
   } else if (pAtom->type == IA_ID_ATOM) {
-    *pdata = (void *)&(((IA_T_ATOM *)&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]))[index]);
+    return (void *)&(((IA_T_ATOM *)&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]))[index]);
   } else {
     if (pAtom->onHeap) {
-      *pdata = &(((uint8_t *)&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]))[index*pAtom->data.pHeap->recsize]);
+      return &(((uint8_t *)&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]))[index*pAtom->data.pHeap->recsize]);
     } else {
-      *pdata = &(((uint8_t *)&(pAtom->data.c))[index*iaTypesize[pAtom->type]]);
+      return &(((uint8_t *)&(pAtom->data.c))[index*iaTypesize[pAtom->type]]);
     }
   }
-  return true;
 }
 
 unsigned long _getNextLargestPowerOf2(unsigned long n) {
@@ -257,7 +255,7 @@ bool iaSetIndex(IA_T_ATOM *pAtom, size_t index, void *pData) {
   if (pAtom->onHeap == 0) {
     memcpy(&(((uint8_t *)&(pAtom->data.c))[index*recsize]), pData, recsize);
   } else {
-    memcpy(&(((uint8_t *)(pAtom->data.pHeap + sizeof(IA_T_HEAP_HEADER)))[index*recsize]), pData, recsize);
+    memcpy(&((&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]))[index*recsize]), pData, recsize);
   }
   if (index+1 > pAtom->count) {
     pAtom->count = index+1;
