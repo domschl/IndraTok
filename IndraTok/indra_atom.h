@@ -2,6 +2,7 @@
 // 7654321076543210765432107654321076543210765432107654321076543210
 // |----
 // 1  2
+#pragma once
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -34,7 +35,6 @@ typedef struct _ia_atom IA_T_ATOM;
 #define IA_STACK_FLOATS (sizeof(void *) *IA_STACK_PREFERENCE / sizeof(float))
 #define IA_STACK_DOUBLES (sizeof(void *) *IA_STACK_PREFERENCE / sizeof(double))
 
-const unsigned long iaStackMax[] = {0, IA_STACK_CHARS, IA_STACK_WORDS, IA_STACK_INTS, IA_STACK_LONGS, IA_STACK_FLOATS, IA_STACK_DOUBLES, 0, 0};
 
 //* Std struct
 struct _ia_atom {
@@ -52,8 +52,6 @@ struct _ia_atom {
     IA_T_HEAP_HEADER *pHeap;
   } data;
 };
-
-const unsigned long iaTypesize[IA_ID_PANY+1] = {0, sizeof(uint8_t), sizeof(uint16_t), sizeof(uint32_t), sizeof(uint64_t), sizeof(float), sizeof(double), sizeof(struct _ia_atom), sizeof(void *)};
 
 void iaDelete(IA_T_ATOM *pAtom);
 bool iaCreate(IA_T_ATOM *pAtom, int type, size_t recsize, size_t count, void *pData);

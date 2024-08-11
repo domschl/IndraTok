@@ -9,5 +9,6 @@ endif()
   
 add_subdirectory (IndraTok)
 add_subdirectory (IndraAtomTest)
+add_subdirectory (IndraTokTest)
 
 set_property(TARGET IndraTok PROPERTY C_STANDARD 11)
