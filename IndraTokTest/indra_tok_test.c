@@ -8,16 +8,6 @@
 
 #include <sys/time.h>
 
-bool makeString(IA_T_ATOM *pa, const char *str) {
-  //printf("Creating string: %s\n", str);
-  iaCreate(pa, IA_ID_CHAR, sizeof(char), strlen(str), (void *)str);
-  if (!stringValidateUtf8(pa)) {
-    printf("Bad string: <%s>\n", str);
-    return false;
-  }
-  return true;
-}
-
 typedef struct _char_conv_test {
   char *charString;
   unsigned long utf8Len;
@@ -44,8 +34,8 @@ int main(int argc, char *argv[]) {
   struct timeval start, stop;
   char *pStr;
   unsigned int errs = 0, oks=0;
-  IA_T_ATOM a;
-  if (!makeString(&a, "Hello, world!")) {
+  IA_T_ATOM a, c;
+  if (!iaSetString(&a, "Hello, world!")) {
     printf("ERROR: Failed to create string.\n");
     errs += 1;
   } else {
@@ -87,10 +77,10 @@ int main(int argc, char *argv[]) {
   */
   //iaDelete(b);
 
-  //makeString(&c, "");
+  iaSetString(&c, "");
   unsigned long sum=0;
   for (unsigned int i=0; i<sizeof(test1)/sizeof(test1[0]); i++) {
-    makeString(&a, test1[i].charString);
+    iaSetString(&a, test1[i].charString);
     pStr = (char *)iaGetDataPtr(&a);
     if (strncmp(pStr, test1[i].charString, strlen(test1[i].charString))) {
       printf("ERROR: Conversion cycle failed for >%s<, result: ", test1[i].charString);
@@ -101,30 +91,31 @@ int main(int argc, char *argv[]) {
         iaPrint(&a); printf("\n");
       oks += 1;
     }
-    //iaJoin(&c, a); sum+=test1[i].utf8Len;
+    iaJoin(&c, &a);
+    sum+=test1[i].utf8Len;
     iaDelete(&a);
-/*
-    a = iaCreateString(test1[i].charString);
-    stringDisplayHex(a);
-    unsigned long len=stringLenUtf8(a);
+
+    iaSetString(&a, test1[i].charString);
+    iaStringDisplayHex(&a);
+    unsigned long len=iaStringUtf8Length(&a);
     if (len != test1[i].utf8Len) {
       printf("WRONG utf8-length for >%s<, got len=%lu, expected %lu\n", test1[i].charString, len, test1[i].utf8Len); 
       errs += 1;
     } else {
       oks += 1;
     }
-    len = stringLenUtf8(c);
+    len = iaStringUtf8Length(&c);
     if (len != sum) {
-      pStr = (char *)c->buf;
-      printf("WRONG utf8-length for >%s<, got len=%lu, expected %lu\n", pStr, len, sum);
+      printf("WRONG utf8-length for >");
+        iaPrint(&c);
+      printf("<, got len=%lu, expected %lu\n", len, sum);
       errs += 1;
     } else {
       oks += 1;
     }
-    iaDelete(a);
-    */
+    iaDelete(&a);    
   }
-  //iaDelete(c);
+  iaDelete(&c);
 /*
   a = iaCreateString("Hello, World!");
   b = iaCreateString("orld!");

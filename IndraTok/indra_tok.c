@@ -6,7 +6,7 @@
 #include "indra_atom.h"
 #include "indra_tok.h"
 
-bool containsBytes(IA_T_ATOM *source, IA_T_ATOM *token) {
+bool iaStringContains(IA_T_ATOM *source, IA_T_ATOM *token) {
   if (token==NULL) return false;
   if (source==NULL) return false;
   if (source->type != IA_ID_CHAR || token->type != IA_ID_CHAR) return false;
@@ -22,7 +22,7 @@ bool containsBytes(IA_T_ATOM *source, IA_T_ATOM *token) {
   else return false;
 }
 
-long stringFindBytes(IA_T_ATOM *source, IA_T_ATOM *token, size_t offset) {
+long iaStringIndexFind(IA_T_ATOM *source, IA_T_ATOM *token, size_t offset) {
   if (token==NULL) return -1;
   if (source==NULL) return -1;
   if (source->type != IA_ID_CHAR || token->type != IA_ID_CHAR) return false;
@@ -44,7 +44,7 @@ long stringFindBytes(IA_T_ATOM *source, IA_T_ATOM *token, size_t offset) {
   else return -1;
 }
 
-long stringFindCountBytes(IA_T_ATOM *source, IA_T_ATOM *token) {
+size_t iaStringCountToken(IA_T_ATOM *source, IA_T_ATOM *token) {
   if (token==NULL) return -1;
   if (source==NULL) return -1;
   if (source->type != IA_ID_CHAR || token->type != IA_ID_CHAR) return false;
@@ -82,7 +82,7 @@ long stringFindCountBytes(IA_T_ATOM *source, IA_T_ATOM *token) {
   return cnt;
 }
 
-unsigned int utf8CharLen(unsigned char ctok) {
+size_t iaCharUtf8Length(unsigned char ctok) {
   if ((ctok & 0x80) == 0) {
       return 1;
   } else if ((ctok & 0xF8) == 0xF0) {
@@ -96,13 +96,13 @@ unsigned int utf8CharLen(unsigned char ctok) {
   }
 }
 
-bool stringValidateUtf8(IA_T_ATOM *source) {
+bool iaStringValidateUtf8(IA_T_ATOM *source) {
   if (source==NULL) return false;
   if (source->type != IA_ID_CHAR) return false;
-  unsigned int charLen, j;
+  size_t charLen, j;
   unsigned char *src = iaGetDataPtr(source);
-  for (unsigned int i=0; i<source->count; i++) {
-    charLen = utf8CharLen(src[i]);
+  for (size_t i=0; i<source->count; i++) {
+    charLen = iaCharUtf8Length(src[i]);
     if (!charLen) return false;
     if (charLen==1) continue;
     if (i+charLen > source->count) return false;
@@ -114,13 +114,13 @@ bool stringValidateUtf8(IA_T_ATOM *source) {
   return true;
 }
 
-unsigned int stringLenUtf8(IA_T_ATOM *source) {
+size_t iaStringUtf8Length(IA_T_ATOM *source) {
   if (source==NULL) return 0;
   if (source->type != IA_ID_CHAR) return 0;
-  unsigned int n=0, charLen;
+  size_t n=0, charLen;
   unsigned char *src = iaGetDataPtr(source);
-  for (unsigned int i=0; i<source->count; i++) {
-    charLen = utf8CharLen(src[i]);
+  for (size_t i=0; i<source->count; i++) {
+    charLen = iaCharUtf8Length(src[i]);
     if (charLen==0) return 0;
     n+=1;
     i+=charLen-1;
@@ -187,19 +187,20 @@ long stringFindCountUtf8(const IndraAtom *source, const IndraAtom *token) {
   }
   return cnt;
 }
+*/
 
-
-IndraAtom *stringPartUtf8(const IndraAtom *source, unsigned int start, unsigned int len) {
-  if (source== NULL) return NULL;
-  if (source->type != IA_CHAR) return NULL;
-  if (stringLenUtf8(source) <= start) {
-    return iaCreateString("");
+bool iaStringPartUtf8(IA_T_ATOM *source, IA_T_ATOM *pdest, size_t start, size_t len) {
+  if (source== NULL) return false;
+  if (source->type != IA_ID_CHAR) return false;
+  if (iaStringUtf8Length(source) <= start) {
+    return iaSetString(pdest, "");
   }
-  unsigned int clen;
-  unsigned int n=0;
-  int p0=-1, p1=-1;
-  for (unsigned int i=0; i<source->count; i++) {
-    clen = utf8CharLen(((unsigned char *)source->buf)[i]);
+  size_t clen;
+  size_t n=0;
+  long p0=-1, p1=-1;
+  for (size_t i=0; i<source->count; i++) {
+    uint8_t *pc = iaGetIndexPtr(source, i);
+    clen = iaCharUtf8Length(*pc);
     if (n==start) p0=i;
     if (n==start+len) {
       p1=i;
@@ -209,16 +210,15 @@ IndraAtom *stringPartUtf8(const IndraAtom *source, unsigned int start, unsigned 
     i += clen-1;
   }
   if (p1==-1) p1=source->count;
-  if (p0==-1) return NULL;
-  if (p0<p1) {
-    return iaSlice(source, p0, p1-p0);
-    //*ppPart = itCreateStringByLength(p1-p0);
-    //(*ppPart)->len = p1-p0;
-    //memcpy((*ppPart)->buf, &(((unsigned char *)source->buf)[p0]), p1-p0);
+  if (p0==-1) {
+    return iaSetString(pdest, "");
   }
-  return NULL;
+  size_t nlen = p1-p0;
+  uint8_t *psrc = iaGetIndexPtr(source, p0);
+  return iaCreate(pdest, IA_ID_CHAR, sizeof(uint8_t), nlen, psrc);
 }
 
+/*
 IndraAtom *stringSplitUtf8(const IndraAtom *source, const IndraAtom *token) {
   if (token==NULL || *(char *)(token->buf)==0) return NULL;
   if (source==NULL) return NULL;
@@ -286,7 +286,7 @@ IndraAtom *stringSplitUtf8(const IndraAtom *source, const IndraAtom *token) {
   //printf("Split-count: %lu\n", pParts->count);
   return pParts;
 }
-
+*/
 
 // --- Just for debug:
 void _toHex(char *target, unsigned char byte) {
@@ -303,9 +303,9 @@ void _toHex(char *target, unsigned char byte) {
   *target=0;
 }
 
-void stringDisplayHex(const IndraAtom *source) {
+void iaStringDisplayHex(IA_T_ATOM *source) {
   if (source==NULL) return;
-  if (source->type != IA_CHAR) return;
+  if (source->type != IA_ID_CHAR) return;
   if (source->count == 0) {
     printf("<empty string>\n");
     return;
@@ -320,17 +320,19 @@ void stringDisplayHex(const IndraAtom *source) {
   *l2=0;
   printf("\n");
   for (unsigned int i=0; i<source->count; i++) {
-    unsigned int len=utf8CharLen(((unsigned char *)source->buf)[i]);
+    char *pc = iaGetIndexPtr(source, i);
+    unsigned int len=iaCharUtf8Length(*pc);
     if (len == 0 || len > 4) {
-      _toHex(charStr, ((unsigned char *)source->buf)[i]);
+      _toHex(charStr, (unsigned char)*pc);
       strcat(l1, " "); strcat(l1, charStr);
       strcat(l2, "└ERR┘");
     } else {
       for (unsigned int j=0; j<len; j++) {
-        _toHex(charStr, ((unsigned char *)source->buf)[i+j]);
+        char *pcj = iaGetIndexPtr(source, i+j);
+        _toHex(charStr, (unsigned char) *pcj);
         strcat(l1, " "); strcat(l1, charStr);
       }
-      strncpy(charStr, &(((char *)source->buf)[i]), len);
+      strncpy(charStr, pc, len);
       charStr[len]=0;
       int chrs=len*5-3;
       int n1=chrs/2-1;
@@ -356,5 +358,3 @@ void stringDisplayHex(const IndraAtom *source) {
     printf("%s\n",l2);
   }  
 }
-
-*/

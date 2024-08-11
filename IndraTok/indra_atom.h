@@ -78,3 +78,5 @@ bool iaExpand(IA_T_ATOM *pAtom, size_t new_capacity);
 bool iaSetIndex(IA_T_ATOM *pAtom, size_t index, void *pData);
 bool iaSetIndexExpand(IA_T_ATOM *pAtom, size_t index, void *pData);
 bool iaAppend(IA_T_ATOM *pAtom, void *pData);
+bool iaCopy(IA_T_ATOM *pSrc, IA_T_ATOM *pDest);
+bool iaJoin(IA_T_ATOM *pRoot, IA_T_ATOM *pAppend);
