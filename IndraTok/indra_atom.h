@@ -70,7 +70,11 @@ void iaSetNil(IA_T_ATOM *pAtom);
 void iaPrint(IA_T_ATOM *pAtom);
 
 bool iaSetString(IA_T_ATOM *pAtom, char *pString);
+void *iaGetStackDataPtr(IA_T_ATOM *pAtom);
+void *iaGetHeapDataPtr(IA_T_ATOM *pAtom);
 void *iaGetDataPtr(IA_T_ATOM *pAtom);
+void *iaGetIndexStackPtr(IA_T_ATOM *pAtom, size_t index);
+void *iaGetIndexHeapPtr(IA_T_ATOM *pAtom, size_t index);
 void *iaGetIndexPtr(IA_T_ATOM *pAtom, size_t index);
 bool iaExpand(IA_T_ATOM *pAtom, size_t new_capacity);
 bool iaSetIndex(IA_T_ATOM *pAtom, size_t index, void *pData);

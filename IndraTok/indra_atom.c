@@ -95,27 +95,13 @@ bool iaSetString(IA_T_ATOM *pAtom, char *pString) {
   return iaCreate(pAtom, IA_ID_CHAR, sizeof(uint8_t), strlen(pString)+1, pString);
 }
 
-void *iaGetDataPtr(IA_T_ATOM *pAtom) {
-  if (pAtom->type == IA_ID_PANY) {
-    return (void *)(pAtom->data.pHeap + sizeof(IA_T_HEAP_HEADER));
-  } else if (pAtom->type == IA_ID_ATOM) {
-    return pAtom->data.pHeap;
-  } else {
-    if (pAtom->onHeap) {
-      return (void *)(pAtom->data.pHeap + sizeof(IA_T_HEAP_HEADER));
-    } else {
-      return &pAtom->data;
-    }
-  }
-}
-
 void iaPrint(IA_T_ATOM *pAtom) {
   if (pAtom->count > 1) {
     printf("[");
   }
   for (size_t i=0; i<pAtom->count; i++) {
-    void *pData;
-    if (!iaGetIndex(pAtom, &pData, i)) {
+    void *pData = iaGetIndexPtr(pAtom, i);
+    if (!pData) {
       printf("Error getting index %ld\n", i);
       return;
     }
@@ -143,8 +129,9 @@ void iaPrint(IA_T_ATOM *pAtom) {
       break;
     case IA_ID_ATOM:
         printf("[");
-        for (uint64_t i=0; i<pAtom->count; i++) {
-          iaPrint(&(((IA_T_ATOM *)(pAtom->data.pHeap + sizeof(IA_T_HEAP_HEADER)))[i]));
+      for (uint64_t i=0; i<pAtom->count; i++) {
+        IA_T_ATOM *pA = iaGetIndexPtr(pAtom, i);
+          iaPrint(pA);
         }
         printf("]");
       break;
@@ -157,20 +144,38 @@ void iaPrint(IA_T_ATOM *pAtom) {
   }
 }
 
+void *iaGetStackDataPtr(IA_T_ATOM *pAtom) {
+  return &(pAtom->data.c);
+}
+
+void *iaGetHeapDataPtr(IA_T_ATOM *pAtom) {
+  return &(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]);
+}
+
+void *iaGetDataPtr(IA_T_ATOM *pAtom) {
+  if (pAtom->onHeap) {
+    return iaGetHeapDataPtr(pAtom);
+  } else {
+    return iaGetStackDataPtr(pAtom);
+  }
+}
+
+void *iaGetIndexStackPtr(IA_T_ATOM *pAtom, size_t index) {
+  return &(((uint8_t *)&(pAtom->data.c))[index*iaTypesize[pAtom->type]]);
+}
+
+void *iaGetIndexHeapPtr(IA_T_ATOM *pAtom, size_t index) {
+  return &((&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]))[index*pAtom->data.pHeap->recsize]);
+}
+
 void *iaGetIndexPtr(IA_T_ATOM *pAtom, size_t index) {
   if (index >= pAtom->count) {
     return NULL;
   }
-  if (pAtom->type == IA_ID_PANY) {
-    return &((&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]))[index*pAtom->data.pHeap->recsize]);
-  } else if (pAtom->type == IA_ID_ATOM) {
-    return (void *)&(((IA_T_ATOM *)&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]))[index]);
+  if (pAtom->onHeap) {
+    return iaGetIndexHeapPtr(pAtom, index);
   } else {
-    if (pAtom->onHeap) {
-      return &(((uint8_t *)&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]))[index*pAtom->data.pHeap->recsize]);
-    } else {
-      return &(((uint8_t *)&(pAtom->data.c))[index*iaTypesize[pAtom->type]]);
-    }
+    return iaGetIndexStackPtr(pAtom, index);
   }
 }
 
@@ -252,11 +257,13 @@ bool iaSetIndex(IA_T_ATOM *pAtom, size_t index, void *pData) {
     }
   }
   size_t recsize = iaTypesize[pAtom->type];
+  void *pdest;
   if (pAtom->onHeap == 0) {
-    memcpy(&(((uint8_t *)&(pAtom->data.c))[index*recsize]), pData, recsize);
+    pdest = iaGetIndexStackPtr(pAtom, index);
   } else {
-    memcpy(&((&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]))[index*recsize]), pData, recsize);
+    pdest = iaGetIndexHeapPtr(pAtom, index);
   }
+  memcpy(pdest, pData, recsize);
   if (index+1 > pAtom->count) {
     pAtom->count = index+1;
   }
@@ -278,11 +285,13 @@ bool iaSetIndexExpand(IA_T_ATOM *pAtom, size_t index, void *pData) {
     }
   }
   size_t recsize = iaTypesize[pAtom->type];
+  void *pdest;
   if (pAtom->onHeap == 0) {
-    memcpy(&(((uint8_t *)&(pAtom->data.c))[index*recsize]), pData, recsize);
+    pdest = iaGetIndexStackPtr(pAtom, index);
   } else {
-    memcpy(&(((uint8_t *)(&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)])))[index*recsize]), pData, recsize);
+    pdest = iaGetIndexHeapPtr(pAtom, index);
   }
+  memcpy(pdest, pData, recsize);
   if (index+1 > pAtom->count) {
     printf("Setting count to %ld\n", index+1);
     pAtom->count = index+1;
