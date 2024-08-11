@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <sys/_types/_size_t.h>  // otherwise clangd complains about 'not used directly' nonsense.
+#include <stdlib.h>
 
 typedef enum types {IA_ID_NIL=0, IA_ID_CHAR, IA_ID_WORD, IA_ID_INT, IA_ID_LONG, IA_ID_FLOAT,
                     IA_ID_DOUBLE, IA_ID_ATOM, IA_ID_PANY} IA_T_TYPES;

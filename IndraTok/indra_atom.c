@@ -130,7 +130,7 @@ void iaPrint(IA_T_ATOM *pAtom) {
       printf("%d", *(uint32_t *)pData);
       break;
     case IA_ID_LONG:
-      printf("%lld", *(uint64_t *)pData);
+      printf("%ld", *(uint64_t *)pData);
       break;
     case IA_ID_FLOAT:
       printf("%f", *(float *)pData);
@@ -163,12 +163,12 @@ bool iaGetIndex(IA_T_ATOM *pAtom, void **pdata, size_t index) {
     return false;
   }
   if (pAtom->type == IA_ID_PANY) {
-    *pdata = &(((uint8_t *)(pAtom->data.pHeap + sizeof(IA_T_HEAP_HEADER)))[index*pAtom->data.pHeap->recsize]);
+    *pdata = &((&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]))[index*pAtom->data.pHeap->recsize]);
   } else if (pAtom->type == IA_ID_ATOM) {
-    *pdata = (void *)&(((IA_T_ATOM *)(pAtom->data.pHeap + sizeof(IA_T_HEAP_HEADER)))[index]);
+    *pdata = (void *)&(((IA_T_ATOM *)&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]))[index]);
   } else {
     if (pAtom->onHeap) {
-      *pdata = &(((uint8_t *)(pAtom->data.pHeap + sizeof(IA_T_HEAP_HEADER)))[index*pAtom->data.pHeap->recsize]);
+      *pdata = &(((uint8_t *)&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]))[index*pAtom->data.pHeap->recsize]);
     } else {
       *pdata = &(((uint8_t *)&(pAtom->data.c))[index*iaTypesize[pAtom->type]]);
     }
@@ -191,7 +191,7 @@ unsigned long _getNextLargestPowerOf2(unsigned long n) {
 bool iaExpand(IA_T_ATOM *pAtom, size_t new_capacity) {
   if (pAtom->onHeap == 0) {
     size_t recsize = iaTypesize[pAtom->type];
-    if (new_capacity < iaStackMax[pAtom->type]) {
+    if (new_capacity <= iaStackMax[pAtom->type]) {
       return true;
     } else {
       // new capacity is next larger power of 2 of new_capacity:
@@ -201,30 +201,34 @@ bool iaExpand(IA_T_ATOM *pAtom, size_t new_capacity) {
       }
       IA_T_ATOM OldAtom;
       memcpy(&OldAtom, pAtom, sizeof(IA_T_ATOM));
-      pAtom->data.pHeap = (void *)malloc(sizeof(IA_T_HEAP_HEADER)+recsize*new_capacity);
+      size_t alloc_size = sizeof(IA_T_HEAP_HEADER)+recsize*new_capacity;
+      pAtom->data.pHeap = (void *)malloc(alloc_size);
       if (pAtom->data.pHeap == NULL) {
         return false;
       }
-      printf("Expanded from stack to heap, new heap-capacity: %ld -> %ld\n", iaStackMax[pAtom->type], new_capacity);
+      printf("Expanded from stack to heap, new heap-capacity: %ld -> %ld, allocated %ld bytes\n", iaStackMax[pAtom->type], new_capacity, alloc_size);
       pAtom->onHeap = 1;
       pAtom->data.pHeap->capacity = new_capacity;
       pAtom->data.pHeap->recsize = recsize;
       printf("Moving %ld bytes from stack to heap\n", recsize*pAtom->count);
-      memcpy(pAtom->data.pHeap + sizeof(IA_T_HEAP_HEADER), &(OldAtom.data.c), recsize*pAtom->count);
+      memcpy(&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)]), &(OldAtom.data.c), recsize*pAtom->count);
       return true;
     }
   } else {
+    if (new_capacity <= pAtom->data.pHeap->capacity) {
+      return true;
+    }
     size_t recsize = pAtom->data.pHeap->recsize;
     if (new_capacity >= pAtom->data.pHeap->capacity) {
       size_t act_new_capacity = _getNextLargestPowerOf2(new_capacity);
       size_t new_size = sizeof(IA_T_HEAP_HEADER)+recsize*act_new_capacity;
-      // void *p = realloc(pAtom->data.pHeap, new_size);  // realloc tries to be smart and only preserves the IA_T_HEAP_HEADER!
-      void *p = malloc(new_size);
+      void *p = realloc(pAtom->data.pHeap, new_size);
+      //void *p = malloc(new_size);
       if (p == NULL) {
         return false;
       }
-      memcpy(p, pAtom->data.pHeap, sizeof(IA_T_HEAP_HEADER)+recsize*pAtom->count);
-      free(pAtom->data.pHeap);
+      //memcpy(p, pAtom->data.pHeap, sizeof(IA_T_HEAP_HEADER)+recsize*pAtom->count);
+      //free(pAtom->data.pHeap);
       pAtom->data.pHeap = p;
       pAtom->data.pHeap->capacity = act_new_capacity;
       printf("Expanded heap-capacity: %ld recsize: %ld\n", pAtom->data.pHeap->capacity, pAtom->data.pHeap->recsize);
@@ -279,7 +283,7 @@ bool iaSetIndexExpand(IA_T_ATOM *pAtom, size_t index, void *pData) {
   if (pAtom->onHeap == 0) {
     memcpy(&(((uint8_t *)&(pAtom->data.c))[index*recsize]), pData, recsize);
   } else {
-    memcpy(&(((uint8_t *)(pAtom->data.pHeap + sizeof(IA_T_HEAP_HEADER)))[index*recsize]), pData, recsize);
+    memcpy(&(((uint8_t *)(&(((uint8_t *)pAtom->data.pHeap)[sizeof(IA_T_HEAP_HEADER)])))[index*recsize]), pData, recsize);
   }
   if (index+1 > pAtom->count) {
     printf("Setting count to %ld\n", index+1);
