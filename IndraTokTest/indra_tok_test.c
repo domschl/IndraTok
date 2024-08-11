@@ -1,6 +1,6 @@
 // -*- coding: utf-8 -*-
 #include <stdio.h>
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <string.h>
 
 #include "indra_atom.h"
@@ -21,11 +21,12 @@ typedef struct _tok_parse_test {
   char *tok;
 } TokParseTest;
 
-TokParseTest test2[] = {{"asdfjiefjiwjef", "asef"}, {"aaaa", "a"},
+TokParseTest test2[] = {{"babababab", "a"},
 {"a", "a"}, {"", "a"}, {"a" ,""},
 {"aaaaa", "a"},{"aaaaaaaaaaaaaaaa", "a"},
 {"abcabcabc", "ab"}, {"abcabc", "abc"},
 {"gulpabbagulpbubugulp", "gulp"},
+{"asdfjiefjiwjef", "asef"}, 
 {"abbagulpbubugulp", "gulp"},
 {"gulpabbagulpbubu", "gulp"},
 };
@@ -34,48 +35,52 @@ int main(int argc, char *argv[]) {
   struct timeval start, stop;
   char *pStr;
   unsigned int errs = 0, oks=0;
-  IA_T_ATOM a, c;
+  IA_T_ATOM a, b, c;
   if (!iaSetString(&a, "Hello, world!")) {
     printf("ERROR: Failed to create string.\n");
     errs += 1;
   } else {
     oks += 1;
   }
-  //printf("String: "); iaPrint(a); printf(" | Part 5,3: ");
-/*
-  b = stringPartUtf8(a, 5, 3);
-  iaPrintLn(b);
-  if (b==NULL || b->buf == NULL) {
+  printf("String: "); iaPrint(&a); printf(" | Part 5,3: ");
+
+  bool res = iaStringUtf8Part(&a, &b, 5, 3);
+  iaPrintLn(&b);
+  if (!res) {
     errs += 1;
     printf("ERROR: failed to get part\n");
   } else {
-    char *pStr = (char *)b->buf;
-    if (strcmp(", w", pStr)) {
-      printf("ERROR: part expected to be >, w<, got: >%s<.\n", pStr);
+    char *pStr = iaGetDataPtr(&b);
+    if (strncmp(", w", pStr, 3)) {
+      printf("ERROR: part expected to be >, w<, got: ");
+      iaPrintLn(&b);
       errs += 1;
     } else {
       oks += 1;
     }
   }
-  iaDelete(b);
-  */
+  iaDelete(&b);
+  iaDelete(&a);
+
+  iaSetString(&a, "");
+  printf("Empty string: >"); iaPrint(&a); printf("<\n");
   iaDelete(&a);
   
- // makeString(&a, "Hello, ");
-  /*
-  b = iaCreateString("world!");
-  iaJoin(&a, b);
-  iaPrintLn(a);
-  char *pStr = (char *)a->buf;
-  if (strcmp("Hello, world!", pStr)) {
+  iaSetString(&a, "Hello, ");
+  iaSetString(&c, "world!");
+  iaSetString(&b, "world!");
+  iaJoin(&a, &b);
+  iaPrintLn(&a);
+  pStr = iaGetDataPtr(&a);
+  if (strncmp("Hello, world!", pStr, strlen("Hello, world!"))) {
     errs += 1;
-    printf("Expected >Hello, world!<, got: >%s<\n", pStr);
+    printf("Expected >Hello, world!<, got: ");
+    iaPrintLn(&a);
   } else {
     oks += 1;
   }
-  iaDelete(a);
-  */
-  //iaDelete(b);
+  iaDelete(&a);
+  iaDelete(&b);
 
   iaSetString(&c, "");
   unsigned long sum=0;
@@ -116,48 +121,50 @@ int main(int argc, char *argv[]) {
     iaDelete(&a);    
   }
   iaDelete(&c);
-/*
-  a = iaCreateString("Hello, World!");
-  b = iaCreateString("orld!");
-  long ind = stringFindUtf8(a, b);
+
+  iaSetString(&a,"Hello, World!");
+  iaSetString(&b, "orld!");
+  long ind = iaStringFind(&a, &b, 0);
   if (ind != 8) {
     printf("ERROR: findUtf8, expected 8, got %ld\n", ind);
     errs += 1;
   } else {
     oks += 1;
   }
-  iaDelete(a);
-  iaDelete(b);
+  iaDelete(&a);
+  iaDelete(&b);
 
-  a = iaCreateString("mömömö");
-  b = stringPartUtf8(a, 2, 2);
-  pStr=(char *)b->buf;
-  if (strcmp("mö", pStr)) {
-    printf("ERROR: part string, expected %s, got %s\n", "mö", pStr);
+  iaSetString(&a, "mömömö");
+  iaStringUtf8Part(&a, &b, 2, 2);
+  pStr=iaGetDataPtr(&b);
+  if (strncmp("mö", pStr, strlen("mö"))) {
+    printf("ERROR: part string, expected %s, got ", "mö");
+    iaPrintLn(&b);
+    errs += 1;
   } else {
     oks += 1;
   }
-  long cnt = stringFindCountUtf8(a, b);
+  long cnt = iaStringCountToken(&a, &b);
   if (cnt != 3) {
     printf("ERROR: token count, got %ld, expected 3\n", cnt);
     errs += 1;
   } else {
     oks += 1;
   }
-  iaDelete(a);
-  iaDelete(b);
+  iaDelete(&a);
+  iaDelete(&b);
 
   
-  a = iaCreateBytes((unsigned char *)"momomo", 6);
-  b = iaSlice(a, 2, 2);
-  if (memcmp((unsigned char *)b->buf, (unsigned char *)"mo", 2)) {
+  iaCreate(&a, IA_ID_CHAR, sizeof(char), 6, "momomo");
+  iaSlice(&a, &b, 2, 2);
+  if (memcmp(iaGetDataPtr(&b), (unsigned char *)"mo", 2)) {
     errs += 1;
-    printf("ERROR: part expected <mo>, got: "); iaPrint(b);
+    printf("ERROR: part expected <mo>, got: "); iaPrint(&b);
   } else {
     oks +=1;
   }
-  iaPrint(a); printf(" "); iaPrintLn(b);
-  cnt = stringFindCountBytes(a, b);
+  iaPrint(&a); printf(" "); iaPrintLn(&b);
+  cnt = iaStringCountToken(&a, &b);
   if (cnt != 3) {
     printf("ERROR: Tok-count: %ld (3)\n", cnt);
     errs += 1;
@@ -165,7 +172,7 @@ int main(int argc, char *argv[]) {
     oks += 1;
   }
 
-  long idx = stringFindBytes(a, b, 0);
+  long idx = iaStringFind(&a, &b, 0);
   printf("First tok: %ld (0)\n", idx);
   if (idx != 0) {
     printf("ERROR index");
@@ -173,7 +180,7 @@ int main(int argc, char *argv[]) {
   } else {
     oks += 1;
   }
-  idx = stringFindBytes(a, b, 1);
+  idx = iaStringFind(&a, &b, 1);
   printf("First tok (off=1): %ld (2)\n", idx);
   if (idx!=2) {
     printf("ERROR index");
@@ -181,7 +188,7 @@ int main(int argc, char *argv[]) {
   } else {
     oks += 1;
   } 
-  idx = stringFindBytes(a, b, 3);
+  idx = iaStringFind(&a, &b, 3);
   printf("First tok (off=3): %ld (4)\n", idx);
   if (idx!=4) {
     printf("ERROR index");
@@ -189,7 +196,7 @@ int main(int argc, char *argv[]) {
   } else {
     oks += 1;
   } 
-  idx = stringFindBytes(a, b, 5);
+  idx = iaStringFind(&a, &b, 5);
   printf("First tok (off=5): %ld (-1)\n", idx);
   if (idx != -1) {
     printf("ERROR index");
@@ -197,18 +204,18 @@ int main(int argc, char *argv[]) {
   } else {
     oks += 1;
   } 
-  iaDelete(a); iaDelete(b);
+  iaDelete(&a); iaDelete(&b);
   
-  a = iaCreateString("7777777");
-  b = stringPartUtf8(a, 2, 1);
-  iaPrint(a); printf(" "); iaPrintLn(b);
-  if (strcmp(b->buf, "7")) {
-    printf("ERROR string part, expected >7<, got: "); iaPrint(b);
+  iaSetString(&a, "7777777");
+  iaStringUtf8Part(&a, &b, 2, 1);
+  iaPrint(&a); printf(" "); iaPrintLn(&b);
+  if (strncmp(iaGetDataPtr(&b), "7", b.count)) {
+    printf("ERROR string part, expected >7<, got: "); iaPrint(&b);
     errs+=1;
   } else {
     oks+=1;
   }
-  cnt = stringFindCountUtf8(a, b);
+  cnt = iaStringCountToken(&a, &b);
   printf("Tok-count: %ld (7)\n", cnt);
   if (cnt!=7) {
     printf("ERROR: wrong count, expected 7, got: %lu\n", cnt);
@@ -216,36 +223,34 @@ int main(int argc, char *argv[]) {
   } else {
     oks += 1;
   }
-  iaDelete(a);
-  iaDelete(b);
+  iaDelete(&a);
+  iaDelete(&b);
   
-  a = iaCreateString("for|you|more");
+  iaSetString(&a, "for|you|more");
   IA_T_ATOM *ar;
-  b = iaCreateString("|");
-  ar = stringSplitUtf8(a, b);
-
-
-
-  iaPrintLn(ar);
+  iaSetString(&b, "|");
+  iaStringUtf8Split(&a, &b, &c);
+  iaPrintLn(&c);
   
-  iaDelete(a);
-  iaDelete(b);
-  iaDelete(ar);
-  // exit(0);
+  iaDelete(&a);
+  iaDelete(&b);
+  iaDelete(&c);
 
   for (unsigned long i=0; i<sizeof(test2)/sizeof(TokParseTest); i++) {
     printf("Tokparse >%s< token >%s<\n", test2[i].str, test2[i].tok);
-    a = iaCreateString(test2[i].str);
-    b = iaCreateString(test2[i].tok);
-    ar = stringSplitUtf8(a, b);
-    iaPrintLn(ar);
-    iaDelete(a);
-    iaDelete(b);
-    iaDelete(ar);    
+    iaSetString(&a, test2[i].str);
+    iaSetString(&b, test2[i].tok);
+    if (iaStringUtf8Split(&a, &b, &c)) {
+      iaPrintLn(&c);
+    iaDelete(&c);    
+    } else {
+        printf("ERROR: split failed\n");
+        errs += 1;
+    }
+    iaDelete(&a);
+    iaDelete(&b);
   }
 
-  */
   printf("\nErrors: %u, Oks: %u\n", errs, oks);
-  return errs;
-  
+  return errs;  
 }

@@ -66,6 +66,7 @@ void iaSetPany(IA_T_ATOM *pAtom, void *pValue);
 void iaSetNil(IA_T_ATOM *pAtom);
 
 void iaPrint(IA_T_ATOM *pAtom);
+void iaPrintLn(IA_T_ATOM *pAtom);
 
 bool iaSetString(IA_T_ATOM *pAtom, char *pString);
 void *iaGetStackDataPtr(IA_T_ATOM *pAtom);
@@ -80,3 +81,4 @@ bool iaSetIndexExpand(IA_T_ATOM *pAtom, size_t index, void *pData);
 bool iaAppend(IA_T_ATOM *pAtom, void *pData);
 bool iaCopy(IA_T_ATOM *pSrc, IA_T_ATOM *pDest);
 bool iaJoin(IA_T_ATOM *pRoot, IA_T_ATOM *pAppend);
+bool iaSlice(IA_T_ATOM *pSrc, IA_T_ATOM *pDest, size_t start, size_t len);

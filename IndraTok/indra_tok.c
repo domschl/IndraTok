@@ -22,7 +22,7 @@ bool iaStringContains(IA_T_ATOM *source, IA_T_ATOM *token) {
   else return false;
 }
 
-long iaStringIndexFind(IA_T_ATOM *source, IA_T_ATOM *token, size_t offset) {
+long iaStringFind(IA_T_ATOM *source, IA_T_ATOM *token, size_t offset) {
   if (token==NULL) return -1;
   if (source==NULL) return -1;
   if (source->type != IA_ID_CHAR || token->type != IA_ID_CHAR) return false;
@@ -56,7 +56,6 @@ size_t iaStringCountToken(IA_T_ATOM *source, IA_T_ATOM *token) {
   for (unsigned long s=0; s<source->count; s++) {
     if (l == token->count) {
       cnt += 1;
-      printf("Found at %ld: %ld\n", fnd, cnt);
       l = 0;
       if (src[s] == tok[l]) {
         fnd = s;
@@ -77,7 +76,6 @@ size_t iaStringCountToken(IA_T_ATOM *source, IA_T_ATOM *token) {
   }
   if (l >= token->count) {
     cnt += 1;
-    printf("Final found at %ld end: %ld\n", fnd, cnt);
   }
   return cnt;
 }
@@ -96,7 +94,7 @@ size_t iaCharUtf8Length(unsigned char ctok) {
   }
 }
 
-bool iaStringValidateUtf8(IA_T_ATOM *source) {
+bool iaStringUtf8Validate(IA_T_ATOM *source) {
   if (source==NULL) return false;
   if (source->type != IA_ID_CHAR) return false;
   size_t charLen, j;
@@ -189,7 +187,7 @@ long stringFindCountUtf8(const IndraAtom *source, const IndraAtom *token) {
 }
 */
 
-bool iaStringPartUtf8(IA_T_ATOM *source, IA_T_ATOM *pdest, size_t start, size_t len) {
+bool iaStringUtf8Part(IA_T_ATOM *source, IA_T_ATOM *pdest, size_t start, size_t len) {
   if (source== NULL) return false;
   if (source->type != IA_ID_CHAR) return false;
   if (iaStringUtf8Length(source) <= start) {
@@ -218,30 +216,44 @@ bool iaStringPartUtf8(IA_T_ATOM *source, IA_T_ATOM *pdest, size_t start, size_t 
   return iaCreate(pdest, IA_ID_CHAR, sizeof(uint8_t), nlen, psrc);
 }
 
-/*
-IndraAtom *stringSplitUtf8(const IndraAtom *source, const IndraAtom *token) {
-  if (token==NULL || *(char *)(token->buf)==0) return NULL;
-  if (source==NULL) return NULL;
-  if (source->type != IA_CHAR || token->type != IA_CHAR) return NULL;
+
+bool iaStringUtf8Split(IA_T_ATOM *source, IA_T_ATOM *token, IA_T_ATOM *parts) {
+  char *psrc, *ptok;
+  parts->type = IA_ID_NIL;
+  if (token==NULL) return false;
+  if (source==NULL) return false;
+  if (parts==NULL) return false;
+  if (source->type != IA_ID_CHAR || token->type != IA_ID_CHAR) return false;
 
   bool insertEmpty = true;
-  IndraAtom *pParts = NULL;
-  unsigned int l=0;
-  unsigned long cnt=0;
+  size_t l=0;
+  size_t cnt=0;
   long fnd = -1;
-  unsigned long part_start = 0;
-  for (unsigned long s=0; s<source->count; s++) {
+  IA_T_ATOM part;
+  bool parts_init = false;
+  long part_start = 0;
+  for (size_t s=0; s<source->count; s++) {
     if (l == token->count) {
       if (fnd - part_start > 0 || insertEmpty) {
-        IndraAtom *prt = iaSlice(source, part_start, fnd-part_start);
-        //printf("tok1: >"); iaPrint(prt); printf("<\n");
-        if (pParts == NULL) pParts = iaCreate(IA_ATOM, prt, 1, 4);
-        else iaJoin(&pParts, prt);
-        iaDelete(prt);
+        if (fnd - part_start < 0) {
+          iaCreate(&part, IA_ID_CHAR, sizeof(uint8_t), 0, "");
+        } else {
+          iaSlice(source, &part, part_start, fnd-part_start);
+        }
+        // printf("tok1: >"); iaPrint(&part); printf("<\n");
+        if (!parts_init) {
+          iaCreate(parts, IA_ID_ATOM, sizeof(IA_T_ATOM), 1, &part);
+          parts_init = true;
+        } else {
+          iaAppend(parts, &part);
+        }
+        iaDelete(&part);
       }
       cnt += 1;
       l = 0;
-      if (((unsigned char *)source->buf)[s] == ((unsigned char *)token->buf)[l]) {
+      psrc = iaGetIndexPtr(source, s);
+      ptok = iaGetIndexPtr(token, l);
+      if (*psrc == *ptok) {
         part_start = s;
         fnd = s;
         l += 1;
@@ -252,7 +264,9 @@ IndraAtom *stringSplitUtf8(const IndraAtom *source, const IndraAtom *token) {
         continue;
       }
     }
-    if (((unsigned char *)source->buf)[s] != ((unsigned char *)token->buf)[l]) {
+    psrc = iaGetIndexPtr(source, s);
+    ptok = iaGetIndexPtr(token, l);
+    if (*psrc != *ptok) {
       l = 0;
       if (fnd> -1) part_start = fnd;
       fnd = -1;
@@ -266,29 +280,65 @@ IndraAtom *stringSplitUtf8(const IndraAtom *source, const IndraAtom *token) {
   }
   if (l >= token->count) {
     if (fnd - part_start > 0 || insertEmpty) {
-      IndraAtom *prt = iaSlice(source, part_start, fnd-part_start);
-      //printf("tok2: >"); iaPrint(prt); printf("<\n");
-      if (pParts == NULL) pParts = iaCreate(IA_ATOM, prt, 1, 1);
-      else iaJoin(&pParts, prt);
-      iaDelete(prt);
+      if (fnd - part_start < 0) {
+        iaCreate(&part, IA_ID_CHAR, sizeof(uint8_t), 0, "");
+      } else {
+        iaSlice(source, &part, part_start, fnd-part_start);
+      }
+      // printf("tok2: >"); iaPrint(&part); printf("<\n");
+      if (!parts_init) {
+        iaCreate(parts, IA_ID_ATOM, sizeof(IA_T_ATOM), 1, &part);
+        parts_init = true;
+      } else {
+        iaAppend(parts, &part);
+      }
+      iaDelete(&part);
+      iaPrintLn(parts);
     }
     cnt += 1;
-    //printf("Final found at %ld end: %ld\n", fnd, cnt);
+    // printf("Final found at %ld end: %ld\n", fnd, cnt);
   } else {
     if (fnd - part_start > 0 || insertEmpty) {
-      IndraAtom *prt = iaSlice(source, part_start, source->count-part_start);
-      //printf("tok3: >"); iaPrint(prt); printf("<\n");
-      if (pParts == NULL) pParts = iaCreate(IA_ATOM, prt, 1, 1);
-      else iaJoin(&pParts, prt);
-      iaDelete(prt);
+      if (fnd - (long)part_start < 0) {
+        iaCreate(&part, IA_ID_CHAR, sizeof(uint8_t), 0, "");
+      } else {
+        iaSlice(source, &part, part_start, fnd-part_start);
+      }
+      // printf("tok3: >"); iaPrint(&part); printf("<\n");
+      if (!parts_init) {
+        iaCreate(parts, IA_ID_ATOM, sizeof(IA_T_ATOM), 1, &part);
+        parts_init = true;
+      } else {
+        iaAppend(parts, &part);
+      }
+      iaDelete(&part);
     }
   }
   //printf("Split-count: %lu\n", pParts->count);
-  return pParts;
+  return true;
 }
-*/
+
 
 // --- Just for debug:
+void debugAtom(IA_T_ATOM *pAtom) {
+  if (pAtom==NULL) {
+    printf("Atom is NULL\n");
+    return;
+  }
+  printf("Atom: %p\n", pAtom);
+  printf("  onHeap: %d\n", pAtom->onHeap);
+  printf("  type: %d\n", pAtom->type);
+  printf("  count: %lu\n", pAtom->count);
+  printf("  data: %p\n", &pAtom->data);
+  if (pAtom->type == IA_ID_CHAR) {
+    printf("  data: ");
+    for (unsigned int i=0; i<pAtom->count; i++) {
+      printf("%c", *((char *)iaGetIndexPtr(pAtom, i)));
+    }
+    printf("\n");
+  }
+}
+
 void _toHex(char *target, unsigned char byte) {
   int hn=(byte & 0xf0) >> 4;
   int ln=(byte & 0x0f);
