@@ -169,7 +169,6 @@ void iaSetAtom(IA_T_ATOM *pAtom, IA_T_ATOM *pValue) {
   pAtom->data.pHeap->capacity = 1;
   pAtom->data.pHeap->recsize = sizeof(IA_T_ATOM);
   IA_T_ATOM *pDest = iaGetDataPtr(pAtom);
-  printf("Set atom: "); iaPrintLn(pValue);
   _recCopy(pDest, pValue);
 }
 
@@ -426,12 +425,12 @@ bool iaJoin(IA_T_ATOM *pAtom, IA_T_ATOM *pAppend) {
   size_t recsize = iaGetRecsize(pAppend);
   if (pAtom->type != IA_ID_ATOM) {
     memcpy(pdest, psrc, recsize*pAppend->count);
+  pAtom->count = new_size;
   } else {
     IA_T_ATOM *pA = (IA_T_ATOM *)pdest;
     _recCopy(pA, pAppend);
+    pAtom->count += 1;
   }
-  
-  pAtom->count = new_size;
   return true;
 }
 
