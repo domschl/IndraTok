@@ -39,32 +39,33 @@ TokParseTest test2[] = {
 {"Das ist das lange Geschichten Buch, ohne Anfang und Ende", "n"},
 };
 
-int main(int argc, char *argv[]) {
+bool oldTest(int *poks, int *perrs) {
   struct timeval start, stop;
   char *pStr;
-  unsigned int errs = 0, oks=0;
+  *perrs = 0;
+  *poks=0;
   IA_T_ATOM a, b, c;
   if (!iaSetString(&a, "Hello, world!")) {
     printf("ERROR: Failed to create string.\n");
-    errs += 1;
+    *perrs += 1;
   } else {
-    oks += 1;
+    *poks += 1;
   }
   printf("String: "); iaPrint(&a); printf(" | Part 5,3: ");
 
   bool res = iaStringUtf8Part(&a, &b, 5, 3);
   iaPrintLn(&b);
   if (!res) {
-    errs += 1;
+    *perrs += 1;
     printf("ERROR: failed to get part\n");
   } else {
     char *pStr = iaGetDataPtr(&b);
     if (strncmp(", w", pStr, 3)) {
       printf("ERROR: part expected to be >, w<, got: ");
       iaPrintLn(&b);
-      errs += 1;
+      *perrs += 1;
     } else {
-      oks += 1;
+      *poks += 1;
     }
   }
   iaDelete(&b);
@@ -81,11 +82,11 @@ int main(int argc, char *argv[]) {
   iaPrintLn(&a);
   pStr = iaGetDataPtr(&a);
   if (strncmp("Hello, world!", pStr, strlen("Hello, world!"))) {
-    errs += 1;
+    *perrs += 1;
     printf("Expected >Hello, world!<, got: ");
     iaPrintLn(&a);
   } else {
-    oks += 1;
+    *poks += 1;
   }
   iaDelete(&a);
   iaDelete(&b);
@@ -98,11 +99,11 @@ int main(int argc, char *argv[]) {
     if (strncmp(pStr, test1[i].charString, strlen(test1[i].charString))) {
       printf("ERROR: Conversion cycle failed for >%s<, result: ", test1[i].charString);
         iaPrint(&a); printf("\n");
-      errs += 1;
+      *perrs += 1;
     } else {
       printf("Conversion cycle ok for >%s<, result: ", test1[i].charString);
         iaPrint(&a); printf("\n");
-      oks += 1;
+      *poks += 1;
     }
     iaJoin(&c, &a);
     sum+=test1[i].utf8Len;
@@ -113,18 +114,18 @@ int main(int argc, char *argv[]) {
     unsigned long len=iaStringUtf8Length(&a);
     if (len != test1[i].utf8Len) {
       printf("WRONG utf8-length for >%s<, got len=%lu, expected %lu\n", test1[i].charString, len, test1[i].utf8Len); 
-      errs += 1;
+      *perrs += 1;
     } else {
-      oks += 1;
+      *poks += 1;
     }
     len = iaStringUtf8Length(&c);
     if (len != sum) {
       printf("WRONG utf8-length for >");
         iaPrint(&c);
       printf("<, got len=%lu, expected %lu\n", len, sum);
-      errs += 1;
+      *perrs += 1;
     } else {
-      oks += 1;
+      *poks += 1;
     }
     iaDelete(&a);    
   }
@@ -135,9 +136,9 @@ int main(int argc, char *argv[]) {
   long ind = iaStringFind(&a, &b, 0);
   if (ind != 8) {
     printf("ERROR: findUtf8, expected 8, got %ld\n", ind);
-    errs += 1;
+    *perrs += 1;
   } else {
-    oks += 1;
+    *poks += 1;
   }
   iaDelete(&a);
   iaDelete(&b);
@@ -148,16 +149,16 @@ int main(int argc, char *argv[]) {
   if (strncmp("mö", pStr, strlen("mö"))) {
     printf("ERROR: part string, expected %s, got ", "mö");
     iaPrintLn(&b);
-    errs += 1;
+    *perrs += 1;
   } else {
-    oks += 1;
+    *poks += 1;
   }
   long cnt = iaStringCountToken(&a, &b);
   if (cnt != 3) {
     printf("ERROR: token count, got %ld, expected 3\n", cnt);
-    errs += 1;
+    *perrs += 1;
   } else {
-    oks += 1;
+    *poks += 1;
   }
   iaDelete(&a);
   iaDelete(&b);
@@ -166,51 +167,51 @@ int main(int argc, char *argv[]) {
   iaCreate(&a, IA_ID_CHAR, sizeof(char), 6, "momomo");
   iaSlice(&a, &b, 2, 2);
   if (memcmp(iaGetDataPtr(&b), (unsigned char *)"mo", 2)) {
-    errs += 1;
+    *perrs += 1;
     printf("ERROR: part expected <mo>, got: "); iaPrint(&b);
   } else {
-    oks +=1;
+    *poks +=1;
   }
   iaPrint(&a); printf(" "); iaPrintLn(&b);
   cnt = iaStringCountToken(&a, &b);
   if (cnt != 3) {
     printf("ERROR: Tok-count: %ld (3)\n", cnt);
-    errs += 1;
+    *perrs += 1;
   } else {
-    oks += 1;
+    *poks += 1;
   }
 
   long idx = iaStringFind(&a, &b, 0);
   printf("First tok: %ld (0)\n", idx);
   if (idx != 0) {
     printf("ERROR index");
-    errs += 1;
+    *perrs += 1;
   } else {
-    oks += 1;
+    *poks += 1;
   }
   idx = iaStringFind(&a, &b, 1);
   printf("First tok (off=1): %ld (2)\n", idx);
   if (idx!=2) {
     printf("ERROR index");
-    errs += 1;
+    *perrs += 1;
   } else {
-    oks += 1;
+    *poks += 1;
   } 
   idx = iaStringFind(&a, &b, 3);
   printf("First tok (off=3): %ld (4)\n", idx);
   if (idx!=4) {
     printf("ERROR index");
-    errs += 1;
+    *perrs += 1;
   } else {
-    oks += 1;
+    *poks += 1;
   } 
   idx = iaStringFind(&a, &b, 5);
   printf("First tok (off=5): %ld (-1)\n", idx);
   if (idx != -1) {
     printf("ERROR index");
-    errs += 1;
+    *perrs += 1;
   } else {
-    oks += 1;
+    *poks += 1;
   } 
   iaDelete(&a); iaDelete(&b);
   
@@ -219,17 +220,17 @@ int main(int argc, char *argv[]) {
   iaPrint(&a); printf(" "); iaPrintLn(&b);
   if (strncmp(iaGetDataPtr(&b), "7", b.count)) {
     printf("ERROR string part, expected >7<, got: "); iaPrint(&b);
-    errs+=1;
+    *perrs+=1;
   } else {
-    oks+=1;
+    *poks+=1;
   }
   cnt = iaStringCountToken(&a, &b);
   printf("Tok-count: %ld (7)\n", cnt);
   if (cnt!=7) {
     printf("ERROR: wrong count, expected 7, got: %lu\n", cnt);
-    errs += 1;
+    *perrs += 1;
   } else {
-    oks += 1;
+    *poks += 1;
   }
   iaDelete(&a);
   iaDelete(&b);
@@ -253,12 +254,45 @@ int main(int argc, char *argv[]) {
       iaDelete(&c);    
     } else {
         printf("ERROR: split failed\n");
-        errs += 1;
+        *perrs += 1;
     }
     iaDelete(&a);
     iaDelete(&b);
   }
+  if (*perrs) {
+    return false;
+  }
+  return true;
+}
 
+bool simpleMatrix(int *poks, int *perrs) {
+  *perrs = 0;
+  *poks = 0;
+  IA_T_ATOM a, b, c;
+  int vec1[]={1, 2, 3};
+  int vec2[]={4, 5, 6};
+  iaCreate(&a, IA_ID_INT, sizeof(int), 3, &vec1);
+  iaCreate(&b, IA_ID_INT, sizeof(int), 3, &vec2);
+  iaSetAtom(&c, &a);
+  iaAppend(&c, &b);
+  iaPrint(&c);
+  iaDelete(&a);
+  iaDelete(&b);
+  iaDelete(&c);
+  if (*perrs) {
+    return false;
+  }
+    return true;
+}
+
+int main(int argc, char *argv[]) {
+  int errs=0, oks=0;
+  if (!oldTest(&oks, &errs)) {
+    printf("Old test failed\n");
+  }
+  if (!simpleMatrix(&oks, &errs)) {
+    printf("Simple matrix test failed\n");
+  }
   printf("\nErrors: %u, Oks: %u\n", errs, oks);
   return errs;  
 }
