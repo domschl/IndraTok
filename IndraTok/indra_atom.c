@@ -9,6 +9,18 @@
 const unsigned long iaStackMax[] = {0, IA_STACK_CHARS, IA_STACK_WORDS, IA_STACK_INTS, IA_STACK_LONGS, IA_STACK_FLOATS, IA_STACK_DOUBLES, 0, 0};
 const unsigned long iaTypesize[IA_ID_PANY+1] = {0, sizeof(uint8_t), sizeof(uint16_t), sizeof(uint32_t), sizeof(uint64_t), sizeof(float), sizeof(double), sizeof(struct _ia_atom), sizeof(void *)};
 
+unsigned long _getNextLargestPowerOf2(unsigned long n) {
+  n--;
+  n |= n >> 1;
+  n |= n >> 2;
+  n |= n >> 4;
+  n |= n >> 8;
+  n |= n >> 16;
+  n |= n >> 32;
+  n++;
+  return n;
+}
+
 size_t iaGetRecsize(IA_T_ATOM *pAtom) {
   if (pAtom->onHeap) {
     return pAtom->data.pHeap->recsize;
@@ -69,8 +81,13 @@ bool iaCreate(IA_T_ATOM *pAtom, int type, size_t recsize, size_t count, void *pD
   pAtom->count = count;
   if (count > iaStackMax[type]) {
     pAtom->onHeap = 1;
-    pAtom->data.pHeap = (void *)malloc(sizeof(IA_T_HEAP_HEADER)+recsize*count);
-    pAtom->data.pHeap->capacity = count;
+    size_t new_capacity = 1;
+    if (count > 1) {
+      new_capacity = _getNextLargestPowerOf2(count);
+      if (new_capacity < IA_MIN_NEW_CAPACITY) new_capacity = IA_MIN_NEW_CAPACITY;
+    }
+    pAtom->data.pHeap = (void *)malloc(sizeof(IA_T_HEAP_HEADER)+recsize*new_capacity);
+    pAtom->data.pHeap->capacity = new_capacity;
     pAtom->data.pHeap->recsize = recsize;
     IA_T_ATOM *subatom = (IA_T_ATOM *)iaGetHeapDataPtr(pAtom);
     if (type == IA_ID_ATOM) {
@@ -220,18 +237,6 @@ void *iaGetIndexPtr(IA_T_ATOM *pAtom, size_t index) {
   return &(pData[index*iaGetRecsize(pAtom)]);
 }
 
-unsigned long _getNextLargestPowerOf2(unsigned long n) {
-  n--;
-  n |= n >> 1;
-  n |= n >> 2;
-  n |= n >> 4;
-  n |= n >> 8;
-  n |= n >> 16;
-  n |= n >> 32;
-  n++;
-  return n;
-}
-
 bool iaExpand(IA_T_ATOM *pAtom, size_t new_capacity) {
   if (pAtom->onHeap == 0) {
     size_t recsize = iaGetRecsize(pAtom);
@@ -240,24 +245,26 @@ bool iaExpand(IA_T_ATOM *pAtom, size_t new_capacity) {
     } else {
       // new capacity is next larger power of 2 of new_capacity:
       new_capacity = _getNextLargestPowerOf2(new_capacity);
-      if (new_capacity < 8) {
-        new_capacity = 8;
+      if (new_capacity < IA_MIN_NEW_EXPAND) {
+        new_capacity = IA_MIN_NEW_EXPAND;
       }
-      IA_T_ATOM OldAtom;
-      memcpy(&OldAtom, pAtom, sizeof(IA_T_ATOM));
+      IA_T_ATOM oldAtom;
+      memcpy(&oldAtom, pAtom, sizeof(IA_T_ATOM));
       size_t alloc_size = sizeof(IA_T_HEAP_HEADER)+recsize*new_capacity;
       pAtom->data.pHeap = (void *)malloc(alloc_size);
       if (pAtom->data.pHeap == NULL) {
         return false;
       }
-        memset(pAtom->data.pHeap, 0, alloc_size);
+      memset(pAtom->data.pHeap, 0, alloc_size);
+      pAtom ->type = oldAtom.type;
       // printf("Expanded from stack to heap, new heap-capacity: %ld -> %ld, allocated %ld bytes\n", iaStackMax[pAtom->type], new_capacity, alloc_size);
       pAtom->onHeap = 1;
+      pAtom->count = oldAtom.count;
       pAtom->data.pHeap->capacity = new_capacity;
       pAtom->data.pHeap->recsize = recsize;
       // printf("Moving %ld bytes from stack to heap\n", recsize*pAtom->count);
       void *pdest = iaGetHeapDataPtr(pAtom);
-      void *psrc = iaGetStackDataPtr(&OldAtom);
+      void *psrc = iaGetStackDataPtr(&oldAtom);
       memcpy(pdest, psrc, recsize*pAtom->count);
       return true;
     }
@@ -269,9 +276,13 @@ bool iaExpand(IA_T_ATOM *pAtom, size_t new_capacity) {
     size_t recsize = pAtom->data.pHeap->recsize;
     if (new_capacity >= pAtom->data.pHeap->capacity) {
       size_t act_new_capacity = _getNextLargestPowerOf2(new_capacity);
-        if (act_new_capacity < 8) {
-            act_new_capacity = 8;
-        }
+      if (act_new_capacity < IA_MIN_NEW_EXPAND) {
+        act_new_capacity = IA_MIN_NEW_EXPAND;
+      }
+      if (act_new_capacity <= pAtom->data.pHeap->capacity) {
+        printf("Calculation of act new capacity went bad: old: %ld new: %ld\n", pAtom->data.pHeap->capacity, act_new_capacity);
+        return false;
+      }
       size_t old_size = sizeof(IA_T_HEAP_HEADER)+pAtom->data.pHeap->recsize*pAtom->count;
       size_t new_size = sizeof(IA_T_HEAP_HEADER)+recsize*act_new_capacity;
       void *p = realloc(pAtom->data.pHeap, new_size);
@@ -397,8 +408,10 @@ bool iaSlice(IA_T_ATOM *pSrc, IA_T_ATOM *pDest, size_t start, size_t len) {
   if (start+len > pSrc->count) {
     len = pSrc->count-start;
   }
+  printf("Creating slice of length: %ld, type %d\n", len, pSrc->type);
   if (!iaCreate(pDest, pSrc->type, iaGetRecsize(pSrc), len, iaGetIndexPtr(pSrc, start))) {
     return false;
   }
+  printf("Created slice of length: %ld, type %d, onHeap %d\n", pDest->count, pDest->type, pDest->onHeap);
   return true;
 }

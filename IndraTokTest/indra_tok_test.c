@@ -16,7 +16,7 @@ typedef struct _char_conv_test {
 } CharConvTest;
 
 CharConvTest test1[] = {{ "Smörö", 5}, {"རྒྱུད་", 6}, {"", 0},
-                    {"𐍈", 1}, {"😁", 1}};
+                    {"𐍈", 1}, {"😁😁😁😁😁", 5}};
 
 typedef struct _tok_parse_test {
   char *str;

@@ -19,7 +19,15 @@ typedef struct _ia_t_heap_header {
 // Stack preference: the higher the number, the more data is stored on the stack
 // before using heap allocation. Default 1, can be overridden by defining
 #ifndef IA_STACK_PREFERENCE
-#define IA_STACK_PREFERENCE 1
+#define IA_STACK_PREFERENCE (1)
+#endif
+
+#ifndef IA_MIN_NEW_EXPAND
+#define IA_MIN_NEW_EXPAND (8)
+#endif
+
+#ifndef IA_MIN_NEW_CAPACITY
+#define IA_MIN_NEW_CAPACITY (4)
 #endif
 
 typedef struct _ia_atom IA_T_ATOM;
