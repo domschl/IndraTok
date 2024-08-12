@@ -257,7 +257,7 @@ bool iaExpand(IA_T_ATOM *pAtom, size_t new_capacity) {
       }
       memset(pAtom->data.pHeap, 0, alloc_size);
       pAtom ->type = oldAtom.type;
-      // printf("Expanded from stack to heap, new heap-capacity: %ld -> %ld, allocated %ld bytes\n", iaStackMax[pAtom->type], new_capacity, alloc_size);
+      printf("Expanded from stack to heap, new heap-capacity: %ld -> %ld, allocated %ld bytes\n", iaStackMax[pAtom->type], new_capacity, alloc_size);
       pAtom->onHeap = 1;
       pAtom->count = oldAtom.count;
       pAtom->data.pHeap->capacity = new_capacity;
@@ -412,6 +412,8 @@ bool iaSlice(IA_T_ATOM *pSrc, IA_T_ATOM *pDest, size_t start, size_t len) {
   if (!iaCreate(pDest, pSrc->type, iaGetRecsize(pSrc), len, iaGetIndexPtr(pSrc, start))) {
     return false;
   }
-  printf("Created slice of length: %ld, type %d, onHeap %d\n", pDest->count, pDest->type, pDest->onHeap);
+  printf("Created slice of length: %ld, type %d, onHeap %d: >", pDest->count, pDest->type, pDest->onHeap);
+  iaPrint(pDest);
+  printf("<\n");
   return true;
 }
