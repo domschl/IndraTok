@@ -152,7 +152,12 @@ void iaSetAtom(IA_T_ATOM *pAtom, IA_T_ATOM *pValue) {
   pAtom->onHeap = 1;
   pAtom->type = IA_ID_ATOM;
   pAtom->count = 1;
-  _recCopy(pAtom, pValue);
+  pAtom->data.pHeap = malloc(sizeof(IA_T_HEAP_HEADER) + sizeof(IA_T_ATOM));
+  IA_T_ATOM *pDest = iaGetDataPtr(pAtom);
+  _recCopy(pDest, pValue);
+  printf("Created atom type %d: >", pAtom->type);
+  iaPrint(pAtom);
+  printf("<\n");
 }
   
 void iaPrint(IA_T_ATOM *pAtom) {
