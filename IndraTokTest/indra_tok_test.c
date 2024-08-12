@@ -3,6 +3,8 @@
 //#include <stdlib.h>
 #include <string.h>
 
+// #define IA_STACK_PREFERENCE 4
+
 #include "indra_atom.h"
 #include "indra_tok.h"
 
@@ -21,14 +23,20 @@ typedef struct _tok_parse_test {
   char *tok;
 } TokParseTest;
 
-TokParseTest test2[] = {{"babababab", "a"},
-{"a", "a"}, {"", "a"}, {"a" ,""},
+TokParseTest test2[] = {
+{"babababab", "a"},
+{"a", "a"},
+{"", "a"},
+{"a" ,""},
 {"aaaaa", "a"},{"aaaaaaaaaaaaaaaa", "a"},
 {"abcabcabc", "ab"}, {"abcabc", "abc"},
 {"gulpabbagulpbubugulp", "gulp"},
+
 {"asdfjiefjiwjef", "asef"}, 
+{"Guten Morgen liebe Sorgen", "rg"},
 {"abbagulpbubugulp", "gulp"},
 {"gulpabbagulpbubu", "gulp"},
+{"Das ist das lange Geschichten Buch, ohne Anfang und Ende", "n"},
 };
 
 int main(int argc, char *argv[]) {
@@ -242,7 +250,7 @@ int main(int argc, char *argv[]) {
     iaSetString(&b, test2[i].tok);
     if (iaStringUtf8Split(&a, &b, &c)) {
       iaPrintLn(&c);
-    iaDelete(&c);    
+      iaDelete(&c);    
     } else {
         printf("ERROR: split failed\n");
         errs += 1;

@@ -55,6 +55,7 @@ struct _ia_atom {
 
 void iaDelete(IA_T_ATOM *pAtom);
 bool iaCreate(IA_T_ATOM *pAtom, int type, size_t recsize, size_t count, void *pData);
+size_t iaGetRecSize(IA_T_ATOM *pAtom);
 void iaSetChar(IA_T_ATOM *pAtom, uint8_t value);
 void iaSetWord(IA_T_ATOM *pAtom, uint16_t value);
 void iaSetInt(IA_T_ATOM *pAtom, uint32_t value);

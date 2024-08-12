@@ -235,20 +235,21 @@ bool iaStringUtf8Split(IA_T_ATOM *source, IA_T_ATOM *token, IA_T_ATOM *parts) {
   for (size_t s=0; s<source->count; s++) {
     if (l == token->count) {
       if (fnd - part_start > 0 || insertEmpty) {
-        if (fnd - part_start < 0) {
+        if (fnd - part_start <= 0) {
           iaCreate(&part, IA_ID_CHAR, sizeof(uint8_t), 0, "");
         } else {
+          //printf("Slicing...");
           iaSlice(source, &part, part_start, fnd-part_start);
         }
         // printf("tok1: >"); iaPrint(&part); printf("<\n");
         if (!parts_init) {
-          iaCreate(parts, IA_ID_ATOM, sizeof(IA_T_ATOM), 1, &part);
+          iaSetAtom(parts, &part);
           parts_init = true;
         } else {
           iaAppend(parts, &part);
         }
         iaDelete(&part);
-      }
+       }
       cnt += 1;
       l = 0;
       psrc = iaGetIndexPtr(source, s);
@@ -280,33 +281,38 @@ bool iaStringUtf8Split(IA_T_ATOM *source, IA_T_ATOM *token, IA_T_ATOM *parts) {
   }
   if (l >= token->count) {
     if (fnd - part_start > 0 || insertEmpty) {
-      if (fnd - part_start < 0) {
+      if (fnd - part_start <= 0) {
         iaCreate(&part, IA_ID_CHAR, sizeof(uint8_t), 0, "");
       } else {
+        //printf("Slicing...");
         iaSlice(source, &part, part_start, fnd-part_start);
       }
       // printf("tok2: >"); iaPrint(&part); printf("<\n");
       if (!parts_init) {
-        iaCreate(parts, IA_ID_ATOM, sizeof(IA_T_ATOM), 1, &part);
+          iaSetAtom(parts, &part);
         parts_init = true;
       } else {
         iaAppend(parts, &part);
       }
-      iaDelete(&part);
-      iaPrintLn(parts);
     }
     cnt += 1;
     // printf("Final found at %ld end: %ld\n", fnd, cnt);
   } else {
-    if (fnd - part_start > 0 || insertEmpty) {
-      if (fnd - (long)part_start < 0) {
+    if ((long)source->count - (long)part_start > 0 || insertEmpty) {
+      if ((long)source->count - (long)part_start <= 0) {
+        //printf("Creating empty part\n");
         iaCreate(&part, IA_ID_CHAR, sizeof(uint8_t), 0, "");
       } else {
-        iaSlice(source, &part, part_start, fnd-part_start);
+        //printf("Slicing...");
+        iaSlice(source, &part, part_start, (long)source->count - (long)part_start);
       }
       // printf("tok3: >"); iaPrint(&part); printf("<\n");
       if (!parts_init) {
-        iaCreate(parts, IA_ID_ATOM, sizeof(IA_T_ATOM), 1, &part);
+        //printf("T3 create, part is heap: %d\n", part.onHeap);
+        //iaPrintLn(&part);
+        iaSetAtom(parts, &part);
+        //printf("T3 created\n");
+        //iaPrintLn(parts);
         parts_init = true;
       } else {
         iaAppend(parts, &part);
@@ -314,7 +320,7 @@ bool iaStringUtf8Split(IA_T_ATOM *source, IA_T_ATOM *token, IA_T_ATOM *parts) {
       iaDelete(&part);
     }
   }
-  //printf("Split-count: %lu\n", pParts->count);
+  //printf("Split-count: %lu\n", parts->count);
   return true;
 }
 

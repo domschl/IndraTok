@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define IA_STACK_PREFERENCE 1
+// #define IA_STACK_PREFERENCE 4
 
 #include "indra_atom.h"
 
