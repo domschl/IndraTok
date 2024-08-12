@@ -285,6 +285,42 @@ bool simpleMatrix(int *poks, int *perrs) {
     return true;
 }
 
+bool simpleTensor(int *poks, int *perrs) {
+  *perrs = 0;
+  *poks = 0;
+  IA_T_ATOM a, b, c, d;
+  int vec1[]={1, 2, 3};
+  int vec2[]={4, 5, 6};
+  printf("Tensor test\n");
+  iaCreate(&a, IA_ID_INT, sizeof(int), 3, &vec1);
+  iaCreate(&b, IA_ID_INT, sizeof(int), 3, &vec2);
+  iaSetAtom(&c, &a);
+  iaAppend(&c, &b);
+  iaPrintLn(&c);
+  iaDelete(&a);
+  iaDelete(&b);
+  iaPrintLn(&c);
+  iaCopy(&c, &a);
+  printf("params: a: "); iaPrintLn(&a);
+  iaCopy(&c, &b);
+  printf("params: b: "); iaPrintLn(&b);
+  iaDelete(&c);
+  printf("moving a: "); iaPrint(&a); printf(" to d\n");
+  iaSetAtom(&d, &a);
+  printf("params: d: "); iaPrintLn(&d);
+  printf("appending b to d\n");
+  iaAppend(&d, &b);
+  printf("params: [a,b]: ");
+  iaPrint(&d);
+  iaDelete(&a);
+  iaDelete(&b);
+  iaDelete(&d);
+  if (*perrs) {
+    return false;
+  }
+  return true;
+}
+
 int main(int argc, char *argv[]) {
   int errs=0, oks=0;
   if (!oldTest(&oks, &errs)) {
@@ -293,6 +329,9 @@ int main(int argc, char *argv[]) {
   if (!simpleMatrix(&oks, &errs)) {
     printf("Simple matrix test failed\n");
   }
+    if (!simpleTensor(&oks, &errs)) {
+        printf("Simple tensor test failed\n");
+    }
   printf("\nErrors: %u, Oks: %u\n", errs, oks);
   return errs;  
 }

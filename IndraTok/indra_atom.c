@@ -40,18 +40,20 @@ void iaDelete(IA_T_ATOM *pAtom) {
     free(pAtom->data.pHeap);
   } else {
     if (pAtom->onHeap) {
-      free(pAtom->data.pHeap);
+      if (pAtom->data.pHeap) free(pAtom->data.pHeap);
+      pAtom->data.pHeap = NULL;
     }  
   }
 }
 
 bool _recCopy(IA_T_ATOM *dest, IA_T_ATOM *src) {
   if (!src->onHeap) {
-  *dest = *src;
+    *dest = *src;
   } else {
     dest->onHeap = 1;
     dest->type = src->type;
     dest->count = src->count;
+    //printf("_recCopy recsize: %ld, count: %ld\n", src->data.pHeap->recsize, src->count);
     dest->data.pHeap = (IA_T_HEAP_HEADER *)malloc(sizeof(IA_T_HEAP_HEADER)+src->data.pHeap->recsize*src->count);
     if (dest->data.pHeap == NULL) {
       return false;
@@ -60,11 +62,15 @@ bool _recCopy(IA_T_ATOM *dest, IA_T_ATOM *src) {
     IA_T_ATOM *subdest = (IA_T_ATOM *)iaGetHeapDataPtr(dest);
     IA_T_ATOM *subsrc = (IA_T_ATOM *)iaGetHeapDataPtr(src);
     if (src->type == IA_ID_ATOM) {
-      printf("Recursively copying atom\n");
-        //memcpy(subdest, subsrc, src->data.pHeap->recsize*src->count);
-      _recCopy(subdest, subsrc);
+      //printf("Recursively copying atom, count=%ld\n", src->count);
+      for (size_t i=0; i<src->count; i++ ) {
+        subdest = iaGetIndexPtr(dest, i);
+        subsrc = iaGetIndexPtr(src, i);
+        memcpy(subdest, subsrc, src->data.pHeap->recsize);
+        _recCopy(subdest, subsrc);
+      }
     } else {
-        memcpy(subdest, subsrc, src->data.pHeap->recsize*src->count);
+      memcpy(subdest, subsrc, src->data.pHeap->recsize*src->count);
     }
   }
   return true;
@@ -91,7 +97,13 @@ bool iaCreate(IA_T_ATOM *pAtom, int type, size_t recsize, size_t count, void *pD
     pAtom->data.pHeap->recsize = recsize;
     IA_T_ATOM *subatom = (IA_T_ATOM *)iaGetHeapDataPtr(pAtom);
     if (type == IA_ID_ATOM) {
-      _recCopy(subatom, pData);
+      subatom->type = IA_ID_ATOM;
+      subatom->count = count;
+      for (size_t i=0; i<count; i++) {
+        IA_T_ATOM *src = iaGetIndexPtr(pData, i);
+        IA_T_ATOM *dst = iaGetIndexPtr(pAtom, i);
+        _recCopy(dst, src);
+      }
     } else {
       memcpy(subatom, pData, recsize*count);
     }
@@ -157,6 +169,7 @@ void iaSetAtom(IA_T_ATOM *pAtom, IA_T_ATOM *pValue) {
   pAtom->data.pHeap->capacity = 1;
   pAtom->data.pHeap->recsize = sizeof(IA_T_ATOM);
   IA_T_ATOM *pDest = iaGetDataPtr(pAtom);
+  printf("Set atom: "); iaPrintLn(pValue);
   _recCopy(pDest, pValue);
 }
 
@@ -373,13 +386,10 @@ bool iaSetIndexExpand(IA_T_ATOM *pAtom, size_t index, void *pData) {
   if (pAtom->type != IA_ID_ATOM) {
     memcpy(pdest, pData, recsize);
   } else {
-    // printf("recCopy at index-expand %ld\n", index);
     IA_T_ATOM *pA = (IA_T_ATOM *)pdest;
     _recCopy(pA, pData);
-    //iaCopy(pData, pA);
   }
   if (index+1 > pAtom->count) {
-    //printf("Setting count to %ld\n", index+1);
     pAtom->count = index+1;
   }
   return true;
@@ -397,11 +407,12 @@ bool iaAppend(IA_T_ATOM *pAtom, void *pData) {
 }
 
 bool iaCopy(IA_T_ATOM *pSrc, IA_T_ATOM *pDest) {
-  if (pSrc->onHeap) {
+  if (!pSrc->onHeap) {
     *pDest = *pSrc;
     return true;
   } else {
-    return iaCreate(pDest, pSrc->type, iaGetRecsize(pSrc), pSrc->count, iaGetDataPtr(pSrc));
+    //printf("Copy, type: %d, recsize: %ld, count: %ld\n", pSrc->type, iaGetRecsize(pSrc), pSrc->count);
+    return iaCreate(pDest, pSrc->type, iaGetRecsize(pSrc), pSrc->count, pSrc);
   }
 }
 
