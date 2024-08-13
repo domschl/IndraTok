@@ -7,7 +7,7 @@
 #include "indra_atom.h"
 
 const unsigned long iaStackMax[] = {0, IA_STACK_CHARS, IA_STACK_WORDS, IA_STACK_INTS, IA_STACK_LONGS, IA_STACK_FLOATS, IA_STACK_DOUBLES, 0, 0};
-const unsigned long iaTypesize[IA_ID_PANY+1] = {0, sizeof(uint8_t), sizeof(uint16_t), sizeof(uint32_t), sizeof(uint64_t), sizeof(float), sizeof(double), sizeof(struct _ia_atom), sizeof(void *)};
+const unsigned long iaTypesize[] = {0, sizeof(uint8_t), sizeof(uint16_t), sizeof(uint32_t), sizeof(uint64_t), sizeof(float), sizeof(double), sizeof(struct _ia_atom), sizeof(void *)};
 
 unsigned long _getNextLargestPowerOf2(unsigned long n) {
   n--;
@@ -21,7 +21,7 @@ unsigned long _getNextLargestPowerOf2(unsigned long n) {
   return n;
 }
 
-size_t iaGetRecsize(IA_T_ATOM *pAtom) {
+size_t iaGetRecsize(const IA_T_ATOM *pAtom) {
   if (pAtom->onHeap) {
     return pAtom->data.pHeap->recsize;
   } else {
@@ -49,7 +49,6 @@ void iaDelete(IA_T_ATOM *pAtom) {
 bool _recCopy(IA_T_ATOM *dest, IA_T_ATOM *src) {
   if (!src->onHeap) {
     printf("STACK _recCopy type: %d, count: %ld\n", src->type, src->count);
- 
     *dest = *src;
   } else {
     dest->onHeap = 1;
@@ -204,18 +203,11 @@ void _iaPrintRec(IA_T_ATOM *pAtom, int level) {
     printf("\nDATA CORRUPTION?\ncount=%ld, type=%d, onHeap=%d\n",pAtom->count, pAtom->type, pAtom->onHeap);
     return;
   }
-  int maxIndent = 1;
+  int maxIndent = 0;
   if (pAtom->count > 1) {
-    if (level<=maxIndent) {
-      printf("\n");
-      _ia_indent(level);
-    }
     printf("[");
-    if (level <= maxIndent) {
-      //printf("\n");
-    }
   }
-  if (level > maxIndent+1) _ia_indent(level+1);
+  // if (level > maxIndent+1) _ia_indent(level+1);
   for (size_t i=0; i<pAtom->count; i++) {
     void *pData = iaGetIndexPtr(pAtom, i);
     if (!pData) {
@@ -226,8 +218,7 @@ void _iaPrintRec(IA_T_ATOM *pAtom, int level) {
       if (pAtom->type != IA_ID_CHAR) {
         printf(", ");
       }
-          if (level==maxIndent+1) printf("\n");
-
+      //if (level==maxIndent+1) printf("\n");
     }
     
     switch (pAtom->type) {
@@ -264,17 +255,15 @@ void _iaPrintRec(IA_T_ATOM *pAtom, int level) {
     }
   }
   if (pAtom->count > 1) {
-    //_ia_indent(level+1);
     printf("]");
-    //printf("\n");
   }
 }
 
-void iaPrint(IA_T_ATOM *pAtom) {
+void iaPrint(const IA_T_ATOM *pAtom) {
   _iaPrintRec(pAtom, 0);
 }
   
-void iaPrintLn(IA_T_ATOM *pAtom) {
+void iaPrintLn(const IA_T_ATOM *pAtom) {
   iaPrint(pAtom);
   printf("\n");
 }
@@ -469,6 +458,7 @@ bool iaJoin(IA_T_ATOM *pAtom, IA_T_ATOM *pAppend) {
 }
 
 bool iaSlice(IA_T_ATOM *pSrc, IA_T_ATOM *pDest, size_t start, size_t len) {
+  
   if (start >= pSrc->count) {
     printf("BAD SLICE\n");
     if (!iaCreate(pDest, pSrc->type, pSrc->type, 0, NULL)) {
@@ -479,7 +469,7 @@ bool iaSlice(IA_T_ATOM *pSrc, IA_T_ATOM *pDest, size_t start, size_t len) {
   if (start+len > pSrc->count) {
     len = pSrc->count-start;
   }
-  printf("Slice: type: %d, recsize: %ld, len: %ld, start: %ld\n", pSrc->type, iaGetRecsize(pSrc), len, start);
+  printf("Slice: count: %ld, type: %d, recsize: %ld, len: %ld, start: %ld\n", pSrc->count, pSrc->type, iaGetRecsize(pSrc), len, start);
   if (!iaCreate(pDest, pSrc->type, iaGetRecsize(pSrc), len, iaGetIndexPtr(pSrc, start))) {
     return false;
   }

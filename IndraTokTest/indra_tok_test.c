@@ -314,15 +314,15 @@ bool simpleTensor(int *poks, int *perrs) {
   iaPrintLn(&d);
   iaDelete(&a);
   iaDelete(&b);
-  iaCreate(&a, IA_ID_INT, sizeof(int), 3, &vec1);
+  iaCreate(&a, IA_ID_INT, sizeof(int), 3, (int[]){7, 8, 9, 10});
   printf("params: a (%ld): ", a.count); iaPrintLn(&a);
   printf("appending a to d (%ld): ", d.count); iaPrint(&d); printf("\n");
   iaJoin(&d, &a);
   printf("params: [d, a] (%ld): ", d.count); iaPrintLn(&d);
   iaDelete(&a);
-  iaSlice(&d, &a, 1, 2);
+  iaSlice(&d, &a, 2, 1);
   printf("Slice: "); iaPrintLn(&a);
-  iaSlice(&a, &b, 1, 1);
+  iaSlice(&a, &b, 0, 1);
   printf("Slice: "); iaPrintLn(&b);
   iaDelete(&b);
   iaDelete(&a);
