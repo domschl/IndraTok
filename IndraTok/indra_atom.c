@@ -48,12 +48,14 @@ void iaDelete(IA_T_ATOM *pAtom) {
 
 bool _recCopy(IA_T_ATOM *dest, IA_T_ATOM *src) {
   if (!src->onHeap) {
+    printf("STACK _recCopy type: %d, count: %ld\n", src->type, src->count);
+ 
     *dest = *src;
   } else {
     dest->onHeap = 1;
     dest->type = src->type;
     dest->count = src->count;
-    //printf("_recCopy recsize: %ld, count: %ld\n", src->data.pHeap->recsize, src->count);
+    printf("_recCopy recsize: %ld, count: %ld\n", src->data.pHeap->recsize, src->count);
     dest->data.pHeap = (IA_T_HEAP_HEADER *)malloc(sizeof(IA_T_HEAP_HEADER)+src->data.pHeap->recsize*src->count);
     if (dest->data.pHeap == NULL) {
       return false;
@@ -78,7 +80,6 @@ bool _recCopy(IA_T_ATOM *dest, IA_T_ATOM *src) {
 
 bool iaCreate(IA_T_ATOM *pAtom, int type, size_t recsize, size_t count, void *pData) {
   memset(pAtom, 0, sizeof(IA_T_ATOM));
-  pAtom->onHeap = 0;
   pAtom->type = type;
   if (type == IA_ID_NIL) {
     pAtom->count = 0;
@@ -86,12 +87,14 @@ bool iaCreate(IA_T_ATOM *pAtom, int type, size_t recsize, size_t count, void *pD
   }
   pAtom->count = count;
   if (count > iaStackMax[type]) {
+    printf("HEAP create, count=%ld\n", count);
     pAtom->onHeap = 1;
     size_t new_capacity = 1;
     if (count > 1) {
       new_capacity = _getNextLargestPowerOf2(count);
       if (new_capacity < IA_MIN_NEW_CAPACITY) new_capacity = IA_MIN_NEW_CAPACITY;
     }
+    printf("New capa: %ld\n", new_capacity);
     pAtom->data.pHeap = (void *)malloc(sizeof(IA_T_HEAP_HEADER)+recsize*new_capacity);
     pAtom->data.pHeap->capacity = new_capacity;
     pAtom->data.pHeap->recsize = recsize;
@@ -100,6 +103,7 @@ bool iaCreate(IA_T_ATOM *pAtom, int type, size_t recsize, size_t count, void *pD
       subatom->type = IA_ID_ATOM;
       subatom->count = count;
       for (size_t i=0; i<count; i++) {
+        printf("Copy index+1 %ld/%ld\n", i+1, pAtom->count);
         IA_T_ATOM *src = iaGetIndexPtr(pData, i);
         IA_T_ATOM *dst = iaGetIndexPtr(pAtom, i);
         _recCopy(dst, src);
@@ -107,7 +111,10 @@ bool iaCreate(IA_T_ATOM *pAtom, int type, size_t recsize, size_t count, void *pD
     } else {
       memcpy(subatom, pData, recsize*count);
     }
+    printf("Created: "); iaPrintLn(pAtom);
   } else {
+    printf("STACK create\n");
+    pAtom->onHeap = 0;
     uint8_t *pdest = iaGetStackDataPtr(pAtom);
     if (count * recsize>0) memcpy(pdest, pData, recsize*count);
   }
@@ -181,6 +188,14 @@ void _iaPrintRec(IA_T_ATOM *pAtom, int level) {
   if (pAtom->count == 0) {
     // print empty set unicode symbol
     printf("\u2205");
+    return;
+  }
+  if (level>5) {
+    printf("\nRECURSION?\n");
+    return;
+  }
+  if (pAtom->count > 100000) {
+    printf("\nDATA CORRUPTION?\ncount=%ld, type=%d, onHeap=%d\n",pAtom->count, pAtom->type, pAtom->onHeap);
     return;
   }
   if (pAtom->count > 1) {
@@ -436,7 +451,7 @@ bool iaJoin(IA_T_ATOM *pAtom, IA_T_ATOM *pAppend) {
 
 bool iaSlice(IA_T_ATOM *pSrc, IA_T_ATOM *pDest, size_t start, size_t len) {
   if (start >= pSrc->count) {
-    //printf("BAD SLICE\n");
+    printf("BAD SLICE\n");
     if (!iaCreate(pDest, pSrc->type, pSrc->type, 0, NULL)) {
       return false;
     }
@@ -445,6 +460,7 @@ bool iaSlice(IA_T_ATOM *pSrc, IA_T_ATOM *pDest, size_t start, size_t len) {
   if (start+len > pSrc->count) {
     len = pSrc->count-start;
   }
+  printf("Slice: type: %d, recsize: %ld, len: %ld, start: %ld\n", pSrc->type, iaGetRecsize(pSrc), len, start);
   if (!iaCreate(pDest, pSrc->type, iaGetRecsize(pSrc), len, iaGetIndexPtr(pSrc, start))) {
     return false;
   }

@@ -320,6 +320,12 @@ bool simpleTensor(int *poks, int *perrs) {
   iaJoin(&d, &a);
   printf("params: [d, a] (%ld): ", d.count); iaPrintLn(&d);
   iaDelete(&a);
+  iaSlice(&d, &a, 1, 2);
+  printf("Slice: "); iaPrintLn(&a);
+  iaSlice(&a, &b, 1, 1);
+  printf("Slice: "); iaPrintLn(&b);
+  iaDelete(&b);
+  iaDelete(&a);
   iaDelete(&d);
   if (*perrs) {
     return false;
