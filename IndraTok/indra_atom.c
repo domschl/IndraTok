@@ -179,6 +179,12 @@ void iaSetAtom(IA_T_ATOM *pAtom, IA_T_ATOM *pValue) {
   _recCopy(pDest, pValue);
 }
 
+void _ia_indent(int i) {
+  for (int j=0; j<i; j++) {
+    printf(" ");
+  }
+}
+
 void _iaPrintRec(IA_T_ATOM *pAtom, int level) {
   IA_T_ATOM *pA;
   if (pAtom==NULL) {
@@ -198,10 +204,18 @@ void _iaPrintRec(IA_T_ATOM *pAtom, int level) {
     printf("\nDATA CORRUPTION?\ncount=%ld, type=%d, onHeap=%d\n",pAtom->count, pAtom->type, pAtom->onHeap);
     return;
   }
+  int maxIndent = 1;
   if (pAtom->count > 1) {
+    if (level<=maxIndent) {
+      printf("\n");
+      _ia_indent(level);
+    }
     printf("[");
+    if (level <= maxIndent) {
+      //printf("\n");
+    }
   }
-  //_iaInsertSpace(level+1);
+  if (level > maxIndent+1) _ia_indent(level+1);
   for (size_t i=0; i<pAtom->count; i++) {
     void *pData = iaGetIndexPtr(pAtom, i);
     if (!pData) {
@@ -212,7 +226,10 @@ void _iaPrintRec(IA_T_ATOM *pAtom, int level) {
       if (pAtom->type != IA_ID_CHAR) {
         printf(", ");
       }
+          if (level==maxIndent+1) printf("\n");
+
     }
+    
     switch (pAtom->type) {
     case IA_ID_CHAR:
       if (i==0) printf("\"");
@@ -226,7 +243,7 @@ void _iaPrintRec(IA_T_ATOM *pAtom, int level) {
       printf("%d", *(uint32_t *)pData);
       break;
     case IA_ID_LONG:
-      printf("%ld", *(uint64_t *)pData);
+      printf("%ld", *(long *)pData);
       break;
     case IA_ID_FLOAT:
       printf("%f", *(float *)pData);
@@ -247,7 +264,9 @@ void _iaPrintRec(IA_T_ATOM *pAtom, int level) {
     }
   }
   if (pAtom->count > 1) {
+    //_ia_indent(level+1);
     printf("]");
+    //printf("\n");
   }
 }
 
