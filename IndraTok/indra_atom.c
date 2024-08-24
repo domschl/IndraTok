@@ -551,6 +551,8 @@ bool iaCreateMap(IA_T_MAP *pMap, size_t capacity) {
   capacity = _getNextLargestPowerOf2(capacity);
   iaCreateCapacity(&(pMap->hash), IA_ID_ATOM, sizeof(IA_T_ATOM), capacity, 0, NULL);
   iaCreateCapacity(&(pMap->values), IA_ID_ATOM, sizeof(IA_T_ATOM), capacity, 0, NULL);
+  pMap->hash.count = capacity;
+  pMap->values.count = capacity;
   return true;
 }
 
@@ -558,7 +560,7 @@ bool iaMapGet(IA_T_MAP *pMap, IA_T_ATOM *pKey, IA_T_ATOM *pValue) {
   void *pKeyData = iaGetDataPtr(pKey);
   unsigned long recsize = iaGetRecsize(pKey);
   unsigned long hash = iaCrc32(pKeyData, recsize*pKey->count) % pMap->hash.data.pHeap->capacity;
-  printf("Get-Hash: %ld, count: %ld\n", hash, pMap->hash.count);
+  //printf("Get-Hash: %ld, count: %ld\n", hash, pMap->hash.count);
   if (hash > pMap->hash.count) {
     return false;
   }
@@ -597,7 +599,7 @@ bool iaMapSet(IA_T_MAP *pMap, IA_T_ATOM *pKey, IA_T_ATOM *pValue) {
     pMap->hash.count = hash+1;
     pMap->values.count = hash+1;
   }
-  printf("Set-Hash: %ld, count: %ld\n", hash, pMap->hash.count);
+  //printf("Set-Hash: %ld, count: %ld\n", hash, pMap->hash.count);
   IA_T_ATOM *pKeyEntry = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->hash), hash);
   IA_T_ATOM *pValueEntry = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->values), hash);
   if (pKeyEntry->count == 0) {

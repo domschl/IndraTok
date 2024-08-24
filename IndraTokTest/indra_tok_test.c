@@ -632,7 +632,7 @@ bool simpleTensor(int *poks, int *perrs, bool verbose) {
   return ok;
 }
 
-bool mapTest(int *oks, int *perrs, bool verbose) {
+bool mapTest(int *poks, int *perrs, bool verbose) {
   bool ok=true;
   IA_T_ATOM a,b,c;
   IA_T_MAP map;
@@ -640,20 +640,65 @@ bool mapTest(int *oks, int *perrs, bool verbose) {
   iaSetString(&a, "Test");
   iaSetString(&b, "Value");
   if (iaMapSet(&map, &a, &b)) {
-    printf("Key/val set\n");
     if (iaMapGet(&map, &a, &c)) {
-      iaPrintLn(&c);
+      unsigned long size_b, size_c;
+      size_b = iaGetRecsize(&b) * b.count;
+      size_c = iaGetRecsize(&c) * b.count;
+      if (size_b == size_c && !memcmp(iaGetDataPtr(&b), iaGetDataPtr(&c), size_b)) {
+        *poks += 1;
+      } else {
+        *perrs += 1;
+        ok = false;
+        printf("Retrieval failure!");
+        printf("Correct: "); iaPrintLn(&b);
+        printf("Got: "); iaPrintLn(&c);
+      }
       iaDelete(&c);
     } else {
+      *perrs += 1;
+      ok = false;
       printf("Key not found\n");
     }
   } else {
+    *perrs += 1;
+    ok = false;
     printf("Error setting key/value");
   }
 
   iaDelete(&a);
   iaDelete(&b);
   iaMapDelete(&map);
+
+
+  unsigned long N=10000;
+  iaCreateMap(&map, 1024);
+  for (unsigned long i=0; i<N; i++) {
+    iaSetInt(&a, i);
+    iaSetInt(&b, i*2);
+    iaMapSet(&map, &a, &b);
+    iaDelete(&a);
+    iaDelete(&b);
+  }
+  for (unsigned long i=0; i<N; i++) {
+    iaSetInt(&a, i);
+    if (iaMapGet(&map, &a, &b)) {
+      if (b.type != IA_ID_INT || *(int *)iaGetDataPtr(&b) != i*2) {
+        *perrs += 1;
+        ok = false;
+        printf("Error in map, expected %lu, got %d\n", i*2, *(int *)iaGetDataPtr(&b));
+      } else {
+        *poks += 1;
+      }
+      iaDelete(&b);
+    } else {
+      *perrs += 1;
+      ok = false;
+      printf("Error in map, key %ld not found\n", i);
+    }
+    iaDelete(&a);
+  }
+    iaMapDelete(&map);
+  
   return ok;
 }
 
