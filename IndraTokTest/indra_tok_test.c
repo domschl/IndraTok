@@ -537,7 +537,7 @@ bool simpleMatrix(int *poks, int *perrs, bool verbose) {
   if (verbose) iaPrint(&c);
   for (int y=0; y<2; y++) {
     for (int x=0; x<3; x++) {
-      xy = *(int *)iaGetIndexPtr2D(&c, y, x);
+      xy = *(int *)iaGetIndexPtr2D(&c, y, x, true);
       if (xy != vec[y][x]) {
         printf("Wrong matrix content %d,%d, expected: %d, got %d\n", y,x, vec[y][x], xy);
         *perrs += 1;
@@ -592,11 +592,12 @@ bool simpleTensor(int *poks, int *perrs, bool verbose) {
   if (verbose) iaPrintLn(&f);
 
   for (int z=0; z<3; z++) {
-    for (int y=0; y<2; y++) {
+    for (int y=0; y<3; y++) {
       for (int x=0; x<3; x++) {
-        if (z!=2) {
-          if (verbose) printf("z=%d, y=%d, x=%d\n", z, y, x);
-          val = *(int *)iaGetIndexPtr3D(&f, z, y, x);
+        void *p = iaGetIndexPtr3D(&f, z, y, x, false);
+        if (p!=NULL) {
+          val = *(int *)p;
+          if (verbose) printf("3D z=%d, y=%d, x=%d => val=%d\n", z, y, x, val);
           if (val != ragged_tensor[z][y][x]) {
             printf("ERROR: Ragged tensor, expected %d, got %d\n", ragged_tensor[z][y][x], val);
             *perrs += 1;
@@ -606,14 +607,17 @@ bool simpleTensor(int *poks, int *perrs, bool verbose) {
           }
         } else {
           if (y==0) {
-            if (verbose) printf("2nd z=%d, y=%d, x=%d\n", z, y, x);
-            val = *(int *)iaGetIndexPtr2D(&f, z,  x);
-            if (val != ragged_tensor[z][y][x]) {
-              printf("ERROR: Ragged tensor, expected %d, got %d\n", ragged_tensor[z][y][x], val);
-              *perrs += 1;
-              ok=false;
-            } else {
-              *poks += 1;
+            void *p2 = iaGetIndexPtr2D(&f, z,  x, false);
+            if (p2!=NULL) {
+              val = *(int *)p2;
+              if (verbose) printf("2D z=%d, y=%d, x=%d => val=%d\n", z, y, x, val);
+              if (val != ragged_tensor[z][y][x]) {
+                printf("ERROR: Ragged tensor, expected %d, got %d\n", ragged_tensor[z][y][x], val);
+                *perrs += 1;
+                ok=false;
+              } else {
+                *poks += 1;
+              }
             }
           }
         }
