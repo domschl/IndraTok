@@ -553,6 +553,7 @@ bool iaCreateMap(IA_T_MAP *pMap, size_t capacity) {
   iaCreateCapacity(&(pMap->values), IA_ID_ATOM, sizeof(IA_T_ATOM), capacity, 0, NULL);
   pMap->hash.count = capacity;
   pMap->values.count = capacity;
+  pMap->fillLevel = 0;
   return true;
 }
 
@@ -594,12 +595,23 @@ bool iaMapGet(IA_T_MAP *pMap, IA_T_ATOM *pKey, IA_T_ATOM *pValue) {
 bool iaMapSet(IA_T_MAP *pMap, IA_T_ATOM *pKey, IA_T_ATOM *pValue) {
   void *pKeyData = iaGetDataPtr(pKey);
   unsigned long recsize = iaGetRecsize(pKey);
-  unsigned long hash = iaCrc32(pKeyData, recsize*pKey->count) % pMap->hash.data.pHeap->capacity;
-  if (hash > pMap->hash.count) {
-    pMap->hash.count = hash+1;
-    pMap->values.count = hash+1;
+  unsigned long hash = iaCrc32(pKeyData, recsize*pKey->count) % (pMap)->hash.data.pHeap->capacity;
+  if (pMap->hash.count * 3 < pMap->fillLevel *4) {
+    //printf("Rehashing\n");
+    IA_T_MAP copyMap;
+    iaCreateMap(&copyMap, pMap->hash.data.pHeap->capacity*2);
+    for (unsigned long i=0; i<pMap->hash.count; i++) {
+      IA_T_ATOM *pKeyEntry = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->hash), i);
+      IA_T_ATOM *pValueEntry = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->values), i);
+      for (unsigned long j=0; j<pKeyEntry->count; j++) {
+        IA_T_ATOM *pKey2 = (IA_T_ATOM *)iaGetIndexPtr(pKeyEntry, j);
+        IA_T_ATOM *pValue2 = (IA_T_ATOM *)iaGetIndexPtr(pValueEntry, j);
+        iaMapSet(&copyMap, pKey2, pValue2);
+      }
+    }
+    iaMapDelete(pMap);
+    *pMap = copyMap;
   }
-  //printf("Set-Hash: %ld, count: %ld\n", hash, pMap->hash.count);
   IA_T_ATOM *pKeyEntry = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->hash), hash);
   IA_T_ATOM *pValueEntry = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->values), hash);
   if (pKeyEntry->count == 0) {
@@ -609,6 +621,7 @@ bool iaMapSet(IA_T_MAP *pMap, IA_T_ATOM *pKey, IA_T_ATOM *pValue) {
     if (!iaCreate(pValueEntry, IA_ID_ATOM, sizeof(IA_T_ATOM), 1, pValue)) {
       return false;
     }
+    pMap->fillLevel += 1;
     return true;
   }
   for (unsigned long i=0; i<pKeyEntry->count; i++) {
@@ -635,6 +648,7 @@ bool iaMapSet(IA_T_MAP *pMap, IA_T_ATOM *pKey, IA_T_ATOM *pValue) {
   if (!iaAppend(pValueEntry, pValue)) {
     return false;
   }
+  pMap->fillLevel += 1;
   return true;
 }
 
@@ -650,12 +664,13 @@ bool iaMapRemove(IA_T_MAP *pMap, IA_T_ATOM *pKey) {
   if (hash > pMap->hash.count) {
     return false;
   }
-  IA_T_ATOM *pEntry = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->hash), hash);
-  if (pEntry->count == 0) {
+  IA_T_ATOM *pKeyEntry = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->hash), hash);
+  IA_T_ATOM *pValueEntry = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->values), hash);
+  if (pKeyEntry->count == 0) {
     return false;
   }
-  for (unsigned long i=0; i<pEntry->count; i++) {
-    IA_T_ATOM *pKey2 = (IA_T_ATOM *)iaGetIndexPtr(pEntry, i);
+  for (unsigned long i=0; i<pKeyEntry->count; i++) {
+    IA_T_ATOM *pKey2 = (IA_T_ATOM *)iaGetIndexPtr(pKeyEntry, i);
     if (pKey2->type != pKey->type) {
       continue;
     }
@@ -664,16 +679,19 @@ bool iaMapRemove(IA_T_MAP *pMap, IA_T_ATOM *pKey) {
       continue;
     }
     if (!memcmp(iaGetDataPtr(pKey2), pKeyData, recsize*pKey->count)) {
-      IA_T_ATOM *pValue = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->values), hash);
-      iaDelete(pKey2);
-      iaDelete(pValue);
-      for (unsigned long j=i+1; j<pEntry->count; j++) {
-        pKey2 = (IA_T_ATOM *)iaGetIndexPtr(pEntry, j);
-        pValue = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->values), hash);
-        iaSetIndex(pEntry, j-1, pKey2);
-        iaSetIndex(&(pMap->values), j-1, pValue);
+      iaDelete(pKeyEntry);
+      iaDelete(pValueEntry);
+      for (unsigned long j=i+1; j<pKeyEntry->count; j++) {
+        pKey2 = (IA_T_ATOM *)iaGetIndexPtr(pKeyEntry, j);
+        IA_T_ATOM *pValue = (IA_T_ATOM *)iaGetIndexPtr(pValueEntry, hash);
+        iaSetIndex(pKeyEntry, j-1, pKey2);
+        iaSetIndex(pValueEntry, j-1, pValue);
+        iaDelete(pKey2);
+        iaDelete(pValue);
       }
-      pEntry->count -= 1;
+      pKeyEntry->count -= 1;
+      pValueEntry->count -= 1;
+      pMap->fillLevel -= 1;
       return true;
     }
   }

@@ -96,6 +96,7 @@ bool iaJoin(IA_T_ATOM *pRoot, IA_T_ATOM *pAppend);
 bool iaSlice(IA_T_ATOM *pSrc, IA_T_ATOM *pDest, size_t start, size_t len);
 
 typedef struct _ia_t_map {
+  unsigned long fillLevel;
   IA_T_ATOM hash;
   IA_T_ATOM values;
 } IA_T_MAP;

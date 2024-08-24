@@ -671,13 +671,18 @@ bool mapTest(int *poks, int *perrs, bool verbose) {
 
 
   unsigned long N=1000000;
-  iaCreateMap(&map, N);
+  iaCreateMap(&map, 1000);
   for (unsigned long i=0; i<N; i++) {
     iaSetInt(&a, i);
     iaSetInt(&b, i*3);
     iaMapSet(&map, &a, &b);
     iaDelete(&a);
     iaDelete(&b);
+  }
+  for (unsigned long i=0; i<N; i++) {
+    iaSetInt(&a, i);
+    iaMapRemove(&map, &a);
+    iaDelete(&a);
   }
   for (unsigned long i=0; i<N; i++) {
     iaSetInt(&a, i);
