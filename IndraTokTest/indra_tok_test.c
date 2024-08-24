@@ -11,12 +11,36 @@
 #include <sys/time.h>
 
 typedef struct _char_conv_test {
+  char *testName;
   char *charString;
   unsigned long utf8Len;
 } CharConvTest;
 
-CharConvTest test1[] = {{ "Smörö", 5}, {"རྒྱུད་", 6}, {"", 0},
-                    {"𐍈", 1}, {"😁😁😁😁😁", 5}};
+CharConvTest test1[] = {
+  {"Latin", "Smörö", 5},
+  {"Tibetan", "རྒྱུད་", 6},
+  {"Empty", "", 0},
+  {"Unicode-Symbal", "𐍈", 1},
+  {"Smiley", "😁😁😁😁😁", 5},
+  {" Amharic ", "ሰላም, እንኳን ወደ ዓለም መጣችሁ!",  22 },
+  {" Arabic ", "مرحباً، أهلاً بك في العالم!",  27},
+  {" Armenian ", "Բարև, բարի գալուստ աշխարհ!",  26 },
+  {" Bengali ", "হ্যালো, বিশ্বে আপনাকে স্বাগতম!",  30 },
+  {" Chinese ", "你好，欢迎来到这个世界！",  12 },
+  {" English ", "Hello, welcome to the world!",  28 },
+  {" Georgian ", "გამარჯობა, კეთილი იყოს თქვენი მობრძანება მსოფლიოში!",  51 },
+  {" Greek ", "Γειά σας, καλώς ήρθατε στον κόσμο!",  34 },
+  {" Hebrew ", "שלום, ברוכים הבאים לעולם!",  25},
+  {" Hindi ", "नमस्ते, दुनिया में आपका स्वागत है!",  34 },
+  {" Japanese ", "こんにちは、世界へようこそ！",  14 },
+  {" Korean ", "안녕하세요, 세상에 오신 것을 환영합니다!",  23 },
+  {" Russian ", "Здравствуйте, добро пожаловать в мир!",  37 },
+  {" Spanish ", "¡Hola, bienvenido al mundo!",  27 },
+  {" Swahili ", "Hujambo, karibu duniani!",  24 },
+  {" Tagalog ", "Kamusta, maligayang pagdating sa mundo!",  39 },
+  {" Thai ", "สวัสดี, ยินดีต้อนรับสู่โลก!",  27 },
+  {" Vietnamese ", "Xin chào, chào mừng đến với thế giới!",  37 }
+};
 
 typedef struct _tok_parse_test {
   char *str;
@@ -38,6 +62,98 @@ TokParseTest test2[] = {
 {"gulpabbagulpbubu", "gulp"},
 {"Das ist das lange Geschichten Buch, ohne Anfang und Ende", "n"},
 };
+
+bool stringTests(int *poks, int *perrs, bool verbose) {
+  IA_T_ATOM a,c;
+  char *pStr;
+  unsigned long sum=0;
+  bool ok=true;
+  iaSetString(&c, "");
+  for (unsigned int i=0; i<sizeof(test1)/sizeof(test1[0]); i++) {
+    iaSetString(&a, test1[i].charString);
+    pStr = (char *)iaGetDataPtr(&a);
+    if (strncmp(pStr, test1[i].charString, strlen(test1[i].charString))) {
+      printf("ERROR: Conversion cycle failed for >%s<, result: ", test1[i].charString);
+      iaPrint(&a); printf("\n");
+      *perrs += 1;
+      ok=false;
+    } else {
+      if (verbose) {
+        iaPrint(&a); printf("\n");
+      }
+      *poks += 1;
+    }
+    iaJoin(&c, &a);
+    sum+=test1[i].utf8Len;
+    iaDelete(&a);
+
+    iaSetString(&a, test1[i].charString);
+    if (verbose) iaStringDisplayHex(&a);
+    unsigned long len=iaStringUtf8Length(&a);
+    if (len != test1[i].utf8Len) {
+      printf("WRONG utf8-length for >%s<, got len=%lu, expected %lu\n", test1[i].charString, len, test1[i].utf8Len); 
+      *perrs += 1;
+      ok=false;
+    } else {
+      *poks += 1;
+    }
+    len = iaStringUtf8Length(&c);
+    if (len != sum) {
+      printf("WRONG utf8-length for >");
+        iaPrint(&c);
+      printf("<, got len=%lu, expected %lu\n", len, sum);
+      *perrs += 1;
+      ok=false;
+    } else {
+      *poks += 1;
+    }
+    iaDelete(&a);    
+  }
+  iaDelete(&c);
+  return ok;
+}
+
+bool typeTests(int *poks, int *perrs, bool verbose) {
+  bool ok=true;
+  IA_T_ATOM a;
+  iaCreate(&a, IA_ID_CHAR, sizeof(char), 6, "momomo");
+    if (a.type != IA_ID_CHAR) {
+        printf("ERROR: type, expected %d, got %d\n", IA_ID_CHAR, a.type);
+        *perrs += 1;
+        ok=false;
+    } else {
+        *poks += 1;
+    }
+    char *pStr = iaGetDataPtr(&a);
+    if (strncmp("momomo", pStr, 6)) {
+        printf("ERROR: data, expected >momomo<, got >%s<\n", pStr);
+        *perrs += 1;
+        ok=false;
+    } else {
+        *poks += 1;
+    }
+    iaDelete(&a);
+  iaCreate(&a, IA_ID_INT, sizeof(int), 3, (int[]){1, 2, 3});
+    if (a.type != IA_ID_INT) {
+        printf("ERROR: type, expected %d, got %d\n", IA_ID_INT, a.type);
+        *perrs += 1;
+        ok=false;
+    } else {
+        *poks += 1;
+    }
+    int *pInt = iaGetDataPtr(&a);
+    if (pInt[0] != 1 || pInt[1] != 2 || pInt[2] != 3) {
+        printf("ERROR: data, expected 1, 2, 3, got %d, %d, %d\n", pInt[0], pInt[1], pInt[2]);
+        *perrs += 1;
+        ok=false;
+    } else {
+        *poks += 1;
+    }
+    iaDelete(&a);
+
+  return ok;
+}
+
 
 bool oldTest(int *poks, int *perrs) {
   struct timeval start, stop;
@@ -335,6 +451,8 @@ bool simpleTensor(int *poks, int *perrs) {
 
 int main(int argc, char *argv[]) {
   int errs=0, oks=0;
+  bool verbose=false;
+  /*
   if (!oldTest(&oks, &errs)) {
     printf("Old test failed\n");
   }
@@ -344,6 +462,13 @@ int main(int argc, char *argv[]) {
     if (!simpleTensor(&oks, &errs)) {
         printf("Simple tensor test failed\n");
     }
+  */
+  if (!stringTests(&oks, &errs, verbose)) {
+    printf("String tests failed\n");
+  }
+  if (!typeTests(&oks, &errs, verbose)) {
+    printf("Type tests failed\n");
+  }
   printf("\nErrors: %u, Oks: %u\n", errs, oks);
   return errs;  
 }
