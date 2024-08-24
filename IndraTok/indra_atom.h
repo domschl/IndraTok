@@ -84,6 +84,8 @@ void *iaGetDataPtr(IA_T_ATOM *pAtom);
 void *iaGetIndexStackPtr(IA_T_ATOM *pAtom, size_t index);
 void *iaGetIndexHeapPtr(IA_T_ATOM *pAtom, size_t index);
 void *iaGetIndexPtr(IA_T_ATOM *pAtom, size_t index);
+void *iaGetIndexPtr2D(IA_T_ATOM *patom, size_t index1, size_t index2);
+void *iaGetIndexPtr3D(IA_T_ATOM *patom, size_t index1, size_t index2, size_t index3);
 bool iaExpand(IA_T_ATOM *pAtom, size_t new_capacity);
 bool iaSetIndex(IA_T_ATOM *pAtom, size_t index, void *pData);
 bool iaSetIndexExpand(IA_T_ATOM *pAtom, size_t index, void *pData);

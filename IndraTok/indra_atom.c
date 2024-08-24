@@ -281,6 +281,45 @@ void *iaGetIndexPtr(IA_T_ATOM *pAtom, size_t index) {
   return &(pData[index*iaGetRecsize(pAtom)]);
 }
 
+void *iaGetIndexPtr2D(IA_T_ATOM *patom, size_t index1, size_t index2) {
+  if (patom->type != IA_ID_ATOM) {
+    printf("ERR: iaGetIndexPtr2D called on non-atom\n");
+    return NULL;
+  }
+  if (patom->count <= index1) {
+    printf("ERR: iaGetIndexPtr2D index1 out of bounds\n");
+    return NULL;
+  }
+  IA_T_ATOM *pA = (IA_T_ATOM *)iaGetIndexPtr(patom, index1);
+  if (pA->count <= index2) {
+    printf("ERR: iaGetIndexPtr2D index2 out of bounds\n");
+    return NULL;
+  }
+  return iaGetIndexPtr(pA, index2);
+}
+
+void *iaGetIndexPtr3D(IA_T_ATOM *patom, size_t index1, size_t index2, size_t index3) {
+    if (patom->type != IA_ID_ATOM) {
+        printf("ERR: iaGetIndexPtr3D called on non-atom\n");
+        return NULL;
+    }
+    if (patom->count <= index1) {
+        printf("ERR: iaGetIndexPtr3D index1 out of bounds\n");
+        return NULL;
+    }
+    IA_T_ATOM *pA = (IA_T_ATOM *)iaGetIndexPtr(patom, index1);
+    if (pA->count <= index2) {
+        printf("ERR: iaGetIndexPtr3D index2 out of bounds\n");
+        return NULL;
+    }
+    IA_T_ATOM *pB = (IA_T_ATOM *)iaGetIndexPtr(pA, index2);
+    if (pB->count <= index3) {
+        printf("ERR: iaGetIndexPtr3D index3 out of bounds\n");
+        return NULL;
+    }
+    return iaGetIndexPtr(pB, index3);
+}
+
 bool iaExpand(IA_T_ATOM *pAtom, size_t new_capacity) {
   if (pAtom->onHeap == 0) {
     size_t recsize = iaGetRecsize(pAtom);
