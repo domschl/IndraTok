@@ -150,6 +150,22 @@ bool typeTests(int *poks, int *perrs, bool verbose) {
         *poks += 1;
     }
     iaDelete(&a);
+    iaCreate(&a, IA_ID_FLOAT, sizeof(float), 3, (float[]){1.1, 2.2, 3.3});
+    if (a.type != IA_ID_FLOAT) {
+        printf("ERROR: type, expected %d, got %d\n", IA_ID_FLOAT, a.type);
+        *perrs += 1;
+        ok=false;
+    } else {
+        *poks += 1;
+    }
+    float *pFloat = iaGetDataPtr(&a);
+    if (pFloat[0] != 1.1 || pFloat[1] != 2.2 || pFloat[2] != 3.3) {
+        printf("ERROR: data, expected 1.1, 2.2, 3.3, got %f, %f, %f\n", pFloat[0], pFloat[1], pFloat[2]);
+        *perrs += 1;
+        ok=false;
+    } else {
+        *poks += 1;
+    }
 
   return ok;
 }
