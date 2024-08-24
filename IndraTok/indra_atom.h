@@ -12,9 +12,9 @@ typedef enum types {IA_ID_NIL=0, IA_ID_CHAR, IA_ID_WORD, IA_ID_INT, IA_ID_LONG, 
                     IA_ID_DOUBLE, IA_ID_ATOM, IA_ID_PANY} IA_T_TYPES;
 
 typedef struct _ia_t_heap_header {
-    size_t capacity;
-    size_t recsize;
-    } IA_T_HEAP_HEADER;
+  size_t capacity;
+  size_t recsize;
+} IA_T_HEAP_HEADER;
 
 // Stack preference: the higher the number, the more data is stored on the stack
 // before using heap allocation. Default 1, can be overridden by defining
@@ -62,6 +62,7 @@ struct _ia_atom {
 };
 
 void iaDelete(IA_T_ATOM *pAtom);
+bool iaCreateCapacity(IA_T_ATOM *pAtom, int type, size_t recsize, size_t capacity, size_t count, void *pData);
 bool iaCreate(IA_T_ATOM *pAtom, int type, size_t recsize, size_t count, void *pData);
 size_t iaGetRecSize(const IA_T_ATOM *pAtom);
 void iaSetChar(IA_T_ATOM *pAtom, uint8_t value);
@@ -93,3 +94,15 @@ bool iaAppend(IA_T_ATOM *pAtom, void *pData);
 bool iaCopy(IA_T_ATOM *pSrc, IA_T_ATOM *pDest);
 bool iaJoin(IA_T_ATOM *pRoot, IA_T_ATOM *pAppend);
 bool iaSlice(IA_T_ATOM *pSrc, IA_T_ATOM *pDest, size_t start, size_t len);
+
+typedef struct _ia_t_map {
+  IA_T_ATOM hash;
+  IA_T_ATOM values;
+} IA_T_MAP;
+
+bool iaCreateMap(IA_T_MAP *pMap, size_t capacity);
+bool iaMapGet(IA_T_MAP *pMap, IA_T_ATOM *pKey, IA_T_ATOM *pValue);
+bool iaMapSet(IA_T_MAP *pMap, IA_T_ATOM *pKey, IA_T_ATOM *pValue);
+void iaMapDelete(IA_T_MAP *pMap);
+bool iaMapRemove(IA_T_MAP *pMap, IA_T_ATOM *pKey);
+

@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #include "indra_atom.h"
+#include "indra_crc_crypt.h"
 
 const unsigned long iaStackMax[] = {0, IA_STACK_CHARS, IA_STACK_WORDS, IA_STACK_INTS, IA_STACK_LONGS, IA_STACK_FLOATS, IA_STACK_DOUBLES, 0, 0};
 const unsigned long iaTypesize[] = {0, sizeof(uint8_t), sizeof(uint16_t), sizeof(uint32_t), sizeof(uint64_t), sizeof(float), sizeof(double), sizeof(struct _ia_atom), sizeof(void *)};
@@ -70,6 +71,49 @@ bool _recCopy(IA_T_ATOM *dest, IA_T_ATOM *src) {
     } else {
       memcpy(subdest, subsrc, src->data.pHeap->recsize*src->count);
     }
+  }
+  return true;
+}
+
+bool iaCreateCapacity(IA_T_ATOM *pAtom, int type, size_t recsize, size_t capacity, size_t count, void *pData) {
+  memset(pAtom, 0, sizeof(IA_T_ATOM));
+  pAtom->type = type;
+  if (type == IA_ID_NIL) {
+    pAtom->count = 0;
+    return true;
+  }
+  pAtom->count = count;
+  if (capacity > iaStackMax[type]) {
+    pAtom->onHeap = 1;
+    size_t new_capacity = 1;
+    if (capacity > 1) {
+      new_capacity = _getNextLargestPowerOf2(capacity);
+      if (new_capacity < IA_MIN_NEW_CAPACITY) new_capacity = IA_MIN_NEW_CAPACITY;
+    }
+    pAtom->data.pHeap = (void *)malloc(sizeof(IA_T_HEAP_HEADER)+recsize*new_capacity);
+    pAtom->data.pHeap->capacity = new_capacity;
+    pAtom->data.pHeap->recsize = recsize;
+    IA_T_ATOM *subatom = (IA_T_ATOM *)iaGetHeapDataPtr(pAtom);
+    if (type == IA_ID_ATOM) {
+      subatom->type = IA_ID_ATOM;
+      subatom->count = count;
+      for (size_t i=0; i<count; i++) {
+        IA_T_ATOM *src = (IA_T_ATOM *)&(((unsigned char *)pData)[recsize * i]);  // iaGetIndexPtr(pData, i);
+        IA_T_ATOM *dst = iaGetIndexPtr(pAtom, i);
+        _recCopy(dst, src);
+      }
+      for (size_t i=count; i<new_capacity; i++) {
+        IA_T_ATOM *dst = iaGetIndexPtr(pAtom, i);
+        memset(dst, 0, sizeof(IA_T_ATOM));
+        dst->type = IA_ID_ATOM;
+      }
+    } else {
+      if (count) memcpy(subatom, pData, recsize*count);
+    }
+  } else {
+    pAtom->onHeap = 0;
+    uint8_t *pdest = iaGetStackDataPtr(pAtom);
+    if (count * recsize>0) memcpy(pdest, pData, recsize*count);
   }
   return true;
 }
@@ -500,4 +544,136 @@ bool iaSlice(IA_T_ATOM *pSrc, IA_T_ATOM *pDest, size_t start, size_t len) {
     return false;
   }
   return true;
+}
+
+// ----------------- MAP -------------------
+bool iaCreateMap(IA_T_MAP *pMap, size_t capacity) {
+  capacity = _getNextLargestPowerOf2(capacity);
+  iaCreateCapacity(&(pMap->hash), IA_ID_ATOM, sizeof(IA_T_ATOM), capacity, 0, NULL);
+  iaCreateCapacity(&(pMap->values), IA_ID_ATOM, sizeof(IA_T_ATOM), capacity, 0, NULL);
+  return true;
+}
+
+bool iaMapGet(IA_T_MAP *pMap, IA_T_ATOM *pKey, IA_T_ATOM *pValue) {
+  void *pKeyData = iaGetDataPtr(pKey);
+  unsigned long recsize = iaGetRecsize(pKey);
+  unsigned long hash = iaCrc32(pKeyData, recsize*pKey->count) % pMap->hash.data.pHeap->capacity;
+  printf("Get-Hash: %ld, count: %ld\n", hash, pMap->hash.count);
+  if (hash > pMap->hash.count) {
+    return false;
+  }
+  IA_T_ATOM *pKeyEntry = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->hash), hash);
+  IA_T_ATOM *pValueEntry = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->values), hash);
+  if (pKeyEntry->count == 0) {
+    return false;
+  }
+  if (pKeyEntry->count != pValueEntry->count) {
+    printf("value and key tables in map have different counts\n");
+    return false;
+  }
+  for (unsigned long i=0; i<pKeyEntry->count; i++) {
+    IA_T_ATOM *pKey2 = (IA_T_ATOM *)iaGetIndexPtr(pKeyEntry, i);
+    if (pKey2->type != pKey->type) {
+      continue;
+    }
+    unsigned long entry_size = iaGetRecsize(pKey2) * pKey2->count;
+    if (entry_size != recsize*pKey->count) {
+      continue;
+    }
+    if (!memcmp(iaGetDataPtr(pKey2), pKeyData, recsize*pKey->count)) {
+      IA_T_ATOM *pValue2 = (IA_T_ATOM *)iaGetIndexPtr(pValueEntry, i);
+      iaCreate(pValue, pValue2->type, iaGetRecsize(pValue2), pValue2->count, iaGetDataPtr(pValue2));
+      return true;
+    }
+  }
+  return false;  
+}
+
+bool iaMapSet(IA_T_MAP *pMap, IA_T_ATOM *pKey, IA_T_ATOM *pValue) {
+  void *pKeyData = iaGetDataPtr(pKey);
+  unsigned long recsize = iaGetRecsize(pKey);
+  unsigned long hash = iaCrc32(pKeyData, recsize*pKey->count) % pMap->hash.data.pHeap->capacity;
+  if (hash > pMap->hash.count) {
+    pMap->hash.count = hash+1;
+    pMap->values.count = hash+1;
+  }
+  printf("Set-Hash: %ld, count: %ld\n", hash, pMap->hash.count);
+  IA_T_ATOM *pKeyEntry = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->hash), hash);
+  IA_T_ATOM *pValueEntry = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->values), hash);
+  if (pKeyEntry->count == 0) {
+    if (!iaCreate(pKeyEntry, IA_ID_ATOM, sizeof(IA_T_ATOM), 1, pKey)) {
+      return false;
+    }
+    if (!iaCreate(pValueEntry, IA_ID_ATOM, sizeof(IA_T_ATOM), 1, pValue)) {
+      return false;
+    }
+    return true;
+  }
+  for (unsigned long i=0; i<pKeyEntry->count; i++) {
+    IA_T_ATOM *pKey2 = (IA_T_ATOM *)iaGetIndexPtr(pKeyEntry, i);
+    if (pKey2->type != pKey->type) {
+      continue;
+    }
+    unsigned long entry_size = iaGetRecsize(pKey2) * pKey2->count;
+    if (entry_size != recsize*pKey->count) {
+      continue;
+    }
+    if (!memcmp(iaGetDataPtr(pKey2), pKeyData, recsize*pKey->count)) {
+      IA_T_ATOM *pValue2 = (IA_T_ATOM *)iaGetIndexPtr(pValueEntry, i);
+      iaDelete(pValue2);
+      if (!iaCreate(pValue2, pValue->type, iaGetRecsize(pValue), pValue->count, iaGetDataPtr(pValue))) {
+        return false;
+      }
+      return true;
+    }
+  }
+  if (!iaAppend(pKeyEntry, pKey)) {
+    return false;
+  }
+  if (!iaAppend(pValueEntry, pValue)) {
+    return false;
+  }
+  return true;
+}
+
+void iaMapDelete(IA_T_MAP *pMap) {
+  iaDelete(&(pMap->hash));
+  iaDelete(&(pMap->values));
+}
+
+bool iaMapRemove(IA_T_MAP *pMap, IA_T_ATOM *pKey) {
+  void *pKeyData = iaGetDataPtr(pKey);
+  unsigned long recsize = iaGetRecsize(pKey);
+  unsigned long hash = iaCrc32(pKeyData, recsize*pKey->count) % pMap->hash.data.pHeap->capacity;
+  if (hash > pMap->hash.count) {
+    return false;
+  }
+  IA_T_ATOM *pEntry = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->hash), hash);
+  if (pEntry->count == 0) {
+    return false;
+  }
+  for (unsigned long i=0; i<pEntry->count; i++) {
+    IA_T_ATOM *pKey2 = (IA_T_ATOM *)iaGetIndexPtr(pEntry, i);
+    if (pKey2->type != pKey->type) {
+      continue;
+    }
+    unsigned long entry_size = iaGetRecsize(pKey2) * pKey2->count;
+    if (entry_size != recsize*pKey->count) {
+      continue;
+    }
+    if (!memcmp(iaGetDataPtr(pKey2), pKeyData, recsize*pKey->count)) {
+      IA_T_ATOM *pValue = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->values), hash);
+      iaDelete(pKey2);
+      iaDelete(pValue);
+      for (unsigned long j=i+1; j<pEntry->count; j++) {
+        pKey2 = (IA_T_ATOM *)iaGetIndexPtr(pEntry, j);
+        pValue = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->values), hash);
+        iaSetIndex(pEntry, j-1, pKey2);
+        iaSetIndex(&(pMap->values), j-1, pValue);
+      }
+      pEntry->count -= 1;
+      return true;
+    }
+  }
+  return false;
 }

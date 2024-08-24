@@ -632,6 +632,32 @@ bool simpleTensor(int *poks, int *perrs, bool verbose) {
   return ok;
 }
 
+bool mapTest(int *oks, int *perrs, bool verbose) {
+  bool ok=true;
+  IA_T_ATOM a,b,c;
+  IA_T_MAP map;
+  iaCreateMap(&map, 1024);
+  iaSetString(&a, "Test");
+  iaSetString(&b, "Value");
+  if (iaMapSet(&map, &a, &b)) {
+    printf("Key/val set\n");
+    if (iaMapGet(&map, &a, &c)) {
+      iaPrintLn(&c);
+      iaDelete(&c);
+    } else {
+      printf("Key not found\n");
+    }
+  } else {
+    printf("Error setting key/value");
+  }
+
+  iaDelete(&a);
+  iaDelete(&b);
+  iaMapDelete(&map);
+  return ok;
+}
+
+
 int main(int argc, char *argv[]) {
   int errs=0, oks=0;
   bool verbose=false;
@@ -669,6 +695,9 @@ int main(int argc, char *argv[]) {
   }
   if (!simpleTensor(&oks, &errs, verbose)) {
     printf("Simple Tensor test failed\n");
+  }
+  if (!mapTest(&oks, &errs, verbose)) {
+    printf("Map Test failed\n");
   }
   printf("\nErrors: %u, Oks: %u\n", errs, oks);
   return errs;  
