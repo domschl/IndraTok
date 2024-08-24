@@ -48,13 +48,11 @@ void iaDelete(IA_T_ATOM *pAtom) {
 
 bool _recCopy(IA_T_ATOM *dest, IA_T_ATOM *src) {
   if (!src->onHeap) {
-    printf("STACK _recCopy type: %d, count: %ld\n", src->type, src->count);
     *dest = *src;
   } else {
     dest->onHeap = 1;
     dest->type = src->type;
     dest->count = src->count;
-    printf("_recCopy recsize: %ld, count: %ld\n", src->data.pHeap->recsize, src->count);
     dest->data.pHeap = (IA_T_HEAP_HEADER *)malloc(sizeof(IA_T_HEAP_HEADER)+src->data.pHeap->recsize*src->count);
     if (dest->data.pHeap == NULL) {
       return false;
@@ -63,7 +61,6 @@ bool _recCopy(IA_T_ATOM *dest, IA_T_ATOM *src) {
     IA_T_ATOM *subdest = (IA_T_ATOM *)iaGetHeapDataPtr(dest);
     IA_T_ATOM *subsrc = (IA_T_ATOM *)iaGetHeapDataPtr(src);
     if (src->type == IA_ID_ATOM) {
-      //printf("Recursively copying atom, count=%ld\n", src->count);
       for (size_t i=0; i<src->count; i++ ) {
         subdest = iaGetIndexPtr(dest, i);
         subsrc = iaGetIndexPtr(src, i);
@@ -86,14 +83,12 @@ bool iaCreate(IA_T_ATOM *pAtom, int type, size_t recsize, size_t count, void *pD
   }
   pAtom->count = count;
   if (count > iaStackMax[type]) {
-    printf("HEAP create, count=%ld\n", count);
     pAtom->onHeap = 1;
     size_t new_capacity = 1;
     if (count > 1) {
       new_capacity = _getNextLargestPowerOf2(count);
       if (new_capacity < IA_MIN_NEW_CAPACITY) new_capacity = IA_MIN_NEW_CAPACITY;
     }
-    printf("New capa: %ld\n", new_capacity);
     pAtom->data.pHeap = (void *)malloc(sizeof(IA_T_HEAP_HEADER)+recsize*new_capacity);
     pAtom->data.pHeap->capacity = new_capacity;
     pAtom->data.pHeap->recsize = recsize;
@@ -102,7 +97,6 @@ bool iaCreate(IA_T_ATOM *pAtom, int type, size_t recsize, size_t count, void *pD
       subatom->type = IA_ID_ATOM;
       subatom->count = count;
       for (size_t i=0; i<count; i++) {
-        printf("Copy index+1 %ld/%ld\n", i+1, pAtom->count);
         IA_T_ATOM *src = (IA_T_ATOM *)&(((unsigned char *)pData)[recsize * i]);  // iaGetIndexPtr(pData, i);
         IA_T_ATOM *dst = iaGetIndexPtr(pAtom, i);
         _recCopy(dst, src);
@@ -110,9 +104,7 @@ bool iaCreate(IA_T_ATOM *pAtom, int type, size_t recsize, size_t count, void *pD
     } else {
       memcpy(subatom, pData, recsize*count);
     }
-    printf("Created: "); iaPrintLn(pAtom);
   } else {
-    printf("STACK create\n");
     pAtom->onHeap = 0;
     uint8_t *pdest = iaGetStackDataPtr(pAtom);
     if (count * recsize>0) memcpy(pdest, pData, recsize*count);
@@ -320,7 +312,6 @@ bool iaExpand(IA_T_ATOM *pAtom, size_t new_capacity) {
     }
   } else {
     if (new_capacity <= pAtom->data.pHeap->capacity) {
-      //printf("No expand necessary (heap)\n");
       return true;
     }
     size_t recsize = pAtom->data.pHeap->recsize;
@@ -382,13 +373,11 @@ bool iaSetIndexExpand(IA_T_ATOM *pAtom, size_t index, void *pData) {
   if (index >= pAtom->count) {
     if (pAtom->onHeap == 0) {
       if (index >= iaStackMax[pAtom->type]) {
-        // printf("SetExpand requires expand (currently stack)\n");
         if (!iaExpand(pAtom, index+1)) return false;
         expanded = true;
       }
     } else {
       if (index >= pAtom->data.pHeap->capacity) {
-        // printf("SetExpand requires expand (currently heap)\n");
         if (!iaExpand(pAtom, index+1)) return false;
         expanded = true;
       }
@@ -433,7 +422,6 @@ bool iaCopy(IA_T_ATOM *pSrc, IA_T_ATOM *pDest) {
     *pDest = *pSrc;
     return true;
   } else {
-    //printf("Copy, type: %d, recsize: %ld, count: %ld\n", pSrc->type, iaGetRecsize(pSrc), pSrc->count);
     return iaCreate(pDest, pSrc->type, iaGetRecsize(pSrc), pSrc->count, iaGetDataPtr(pSrc));
   }
 }
@@ -467,11 +455,8 @@ bool iaSlice(IA_T_ATOM *pSrc, IA_T_ATOM *pDest, size_t start, size_t len) {
     return true;
   }
   if (start+len > pSrc->count) {
-    printf("Shortening slice\n");
     len = pSrc->count-start;
   }
-  printf("Slice: count: %ld, type: %d, recsize: %ld, len: %ld, start: %ld\n", pSrc->count, pSrc->type, iaGetRecsize(pSrc), len, start);
-  printf("Src: "); iaPrintLn(pSrc);
   if (!iaCreate(pDest, pSrc->type, iaGetRecsize(pSrc), len, iaGetIndexPtr(pSrc, start))) {
     return false;
   }
