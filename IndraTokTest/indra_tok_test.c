@@ -299,7 +299,7 @@ bool simpleTensor(int *poks, int *perrs) {
   iaPrintLn(&c);
   iaDelete(&a);
   iaDelete(&b);
-  iaPrintLn(&c);
+  printf("c: "); iaPrintLn(&c);
   iaCopy(&c, &a);
   printf("params: a: "); iaPrintLn(&a);
   iaCopy(&c, &b);

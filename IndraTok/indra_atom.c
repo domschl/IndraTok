@@ -103,7 +103,7 @@ bool iaCreate(IA_T_ATOM *pAtom, int type, size_t recsize, size_t count, void *pD
       subatom->count = count;
       for (size_t i=0; i<count; i++) {
         printf("Copy index+1 %ld/%ld\n", i+1, pAtom->count);
-        IA_T_ATOM *src = iaGetIndexPtr(pData, i);
+        IA_T_ATOM *src = (IA_T_ATOM *)&(((unsigned char *)pData)[recsize * i]);  // iaGetIndexPtr(pData, i);
         IA_T_ATOM *dst = iaGetIndexPtr(pAtom, i);
         _recCopy(dst, src);
       }
@@ -259,11 +259,11 @@ void _iaPrintRec(IA_T_ATOM *pAtom, int level) {
   }
 }
 
-void iaPrint(const IA_T_ATOM *pAtom) {
+void iaPrint(IA_T_ATOM *pAtom) {
   _iaPrintRec(pAtom, 0);
 }
   
-void iaPrintLn(const IA_T_ATOM *pAtom) {
+void iaPrintLn(IA_T_ATOM *pAtom) {
   iaPrint(pAtom);
   printf("\n");
 }
@@ -434,7 +434,7 @@ bool iaCopy(IA_T_ATOM *pSrc, IA_T_ATOM *pDest) {
     return true;
   } else {
     //printf("Copy, type: %d, recsize: %ld, count: %ld\n", pSrc->type, iaGetRecsize(pSrc), pSrc->count);
-    return iaCreate(pDest, pSrc->type, iaGetRecsize(pSrc), pSrc->count, pSrc);
+    return iaCreate(pDest, pSrc->type, iaGetRecsize(pSrc), pSrc->count, iaGetDataPtr(pSrc));
   }
 }
 
@@ -467,9 +467,11 @@ bool iaSlice(IA_T_ATOM *pSrc, IA_T_ATOM *pDest, size_t start, size_t len) {
     return true;
   }
   if (start+len > pSrc->count) {
+    printf("Shortening slice\n");
     len = pSrc->count-start;
   }
   printf("Slice: count: %ld, type: %d, recsize: %ld, len: %ld, start: %ld\n", pSrc->count, pSrc->type, iaGetRecsize(pSrc), len, start);
+  printf("Src: "); iaPrintLn(pSrc);
   if (!iaCreate(pDest, pSrc->type, iaGetRecsize(pSrc), len, iaGetIndexPtr(pSrc, start))) {
     return false;
   }

@@ -74,8 +74,8 @@ void iaSetAtom(IA_T_ATOM *pAtom, IA_T_ATOM *pValue);
 void iaSetPany(IA_T_ATOM *pAtom, void *pValue);
 void iaSetNil(IA_T_ATOM *pAtom);
 
-void iaPrint(const IA_T_ATOM *pAtom);
-void iaPrintLn(const IA_T_ATOM *pAtom);
+void iaPrint(IA_T_ATOM *pAtom);
+void iaPrintLn(IA_T_ATOM *pAtom);
 
 bool iaSetString(IA_T_ATOM *pAtom, char *pString);
 void *iaGetStackDataPtr(IA_T_ATOM *pAtom);
@@ -85,9 +85,9 @@ void *iaGetIndexStackPtr(IA_T_ATOM *pAtom, size_t index);
 void *iaGetIndexHeapPtr(IA_T_ATOM *pAtom, size_t index);
 void *iaGetIndexPtr(IA_T_ATOM *pAtom, size_t index);
 bool iaExpand(IA_T_ATOM *pAtom, size_t new_capacity);
-bool iaSetIndex(IA_T_ATOM *pAtom, size_t index, const void *pData);
-bool iaSetIndexExpand(IA_T_ATOM *pAtom, size_t index, const void *pData);
-bool iaAppend(IA_T_ATOM *pAtom, const void *pData);
-bool iaCopy(const IA_T_ATOM *pSrc, IA_T_ATOM *pDest);
-bool iaJoin(IA_T_ATOM *pRoot, const IA_T_ATOM *pAppend);
-bool iaSlice(const IA_T_ATOM *pSrc, IA_T_ATOM *pDest, size_t start, size_t len);
+bool iaSetIndex(IA_T_ATOM *pAtom, size_t index, void *pData);
+bool iaSetIndexExpand(IA_T_ATOM *pAtom, size_t index, void *pData);
+bool iaAppend(IA_T_ATOM *pAtom, void *pData);
+bool iaCopy(IA_T_ATOM *pSrc, IA_T_ATOM *pDest);
+bool iaJoin(IA_T_ATOM *pRoot, IA_T_ATOM *pAppend);
+bool iaSlice(IA_T_ATOM *pSrc, IA_T_ATOM *pDest, size_t start, size_t len);
