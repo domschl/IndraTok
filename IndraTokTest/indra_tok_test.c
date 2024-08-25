@@ -1,10 +1,8 @@
 // -*- coding: utf-8 -*-
 #include <stdio.h>
-//#include <stdlib.h>
+#include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
-#define IA_STACK_PREFERENCE 1
 
 #include "indra_atom.h"
 #include "indra_tok.h"
@@ -653,7 +651,7 @@ bool mapTest(int *poks, int *perrs, bool verbose) {
         printf("Correct: "); iaPrintLn(&b);
         printf("Got: "); iaPrintLn(&c);
       }
-      iaDelete(&c);
+      // iaDelete(&c);
     } else {
       *perrs += 1;
       ok = false;
@@ -671,7 +669,9 @@ bool mapTest(int *poks, int *perrs, bool verbose) {
 
 
   unsigned long N=1000000;
-  iaCreateMap(&map, 1000);
+  iaCreateMap(&map, N*2);
+
+  printf("Test 1\n");
   for (unsigned long i=0; i<N; i++) {
     iaSetInt(&a, i);
     iaSetInt(&b, i*3);
@@ -679,37 +679,54 @@ bool mapTest(int *poks, int *perrs, bool verbose) {
     iaDelete(&a);
     iaDelete(&b);
   }
+  
   for (unsigned long i=0; i<N; i++) {
     iaSetInt(&a, i);
     iaMapRemove(&map, &a);
     iaDelete(&a);
-  }
+    }
+   
+  iaMapDelete(&map);
+
+  printf("Test 2\n");
+  iaCreateMap(&map, 1700000);
+  char buf[64];
   for (unsigned long i=0; i<N; i++) {
-    iaSetInt(&a, i);
-    iaSetInt(&b, i*2);
+    sprintf(buf, "Key in question %lu", i);
+    iaSetString(&a, buf);
+    sprintf(buf, "Value that precisely describes the state: %lu", i*4);
+    iaSetString(&b, buf);
     iaMapSet(&map, &a, &b);
     iaDelete(&a);
     iaDelete(&b);
   }
   for (unsigned long i=0; i<N; i++) {
-    iaSetInt(&a, i);
-    if (iaMapGet(&map, &a, &b)) {
-      if (b.type != IA_ID_INT || *(int *)iaGetDataPtr(&b) != i*2) {
+    sprintf(buf, "Key in question %lu", i);
+    iaSetString(&a, buf);
+    sprintf(buf, "Value that precisely describes the state: %lu", i*4);
+    iaSetString(&b, buf);
+    if (iaMapGet(&map, &a, &c)) {
+      if (c.type != IA_ID_CHAR || b.count != c.count || strncmp((char *)iaGetDataPtr(&b), (char *)iaGetDataPtr(&c), b.count)) {
         *perrs += 1;
         ok = false;
-        printf("Error in map, expected %lu, got %d\n", i*2, *(int *)iaGetDataPtr(&b));
+        printf("Error in map, expected: >");
+        iaPrint(&b);
+        printf("<, got: >");
+        iaPrint(&c);
+        printf("<\n");
       } else {
         *poks += 1;
+      iaDelete(&c);
       }
-      iaDelete(&b);
     } else {
       *perrs += 1;
       ok = false;
       printf("Error in map, key %ld not found\n", i);
     }
+    iaDelete(&b);
     iaDelete(&a);
   }
-    iaMapDelete(&map);
+  iaMapDelete(&map);
   
   return ok;
 }

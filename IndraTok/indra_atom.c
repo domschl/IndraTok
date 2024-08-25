@@ -597,7 +597,7 @@ bool iaMapSet(IA_T_MAP *pMap, IA_T_ATOM *pKey, IA_T_ATOM *pValue) {
   unsigned long recsize = iaGetRecsize(pKey);
   unsigned long hash = iaCrc32(pKeyData, recsize*pKey->count) % (pMap)->hash.data.pHeap->capacity;
   if (pMap->hash.count * 3 < pMap->fillLevel *4) {
-    //printf("Rehashing\n");
+    printf("Rehashing table %ld -> %ld\n", pMap->hash.count, pMap->hash.count*2);
     IA_T_MAP copyMap;
     iaCreateMap(&copyMap, pMap->hash.data.pHeap->capacity*2);
     for (unsigned long i=0; i<pMap->hash.count; i++) {
@@ -611,6 +611,7 @@ bool iaMapSet(IA_T_MAP *pMap, IA_T_ATOM *pKey, IA_T_ATOM *pValue) {
     }
     iaMapDelete(pMap);
     *pMap = copyMap;
+    printf("Rehashing done\n");
   }
   IA_T_ATOM *pKeyEntry = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->hash), hash);
   IA_T_ATOM *pValueEntry = (IA_T_ATOM *)iaGetIndexPtr(&(pMap->values), hash);
@@ -679,16 +680,18 @@ bool iaMapRemove(IA_T_MAP *pMap, IA_T_ATOM *pKey) {
       continue;
     }
     if (!memcmp(iaGetDataPtr(pKey2), pKeyData, recsize*pKey->count)) {
-      iaDelete(pKeyEntry);
-      iaDelete(pValueEntry);
+      //iaDelete(pKeyEntry);
+      //iaDelete(pValueEntry);
       for (unsigned long j=i+1; j<pKeyEntry->count; j++) {
         pKey2 = (IA_T_ATOM *)iaGetIndexPtr(pKeyEntry, j);
         IA_T_ATOM *pValue = (IA_T_ATOM *)iaGetIndexPtr(pValueEntry, hash);
         iaSetIndex(pKeyEntry, j-1, pKey2);
         iaSetIndex(pValueEntry, j-1, pValue);
-        iaDelete(pKey2);
-        iaDelete(pValue);
+        //iaDelete(pKey2);
+        //iaDelete(pValue);
       }
+      iaDelete((IA_T_ATOM *)iaGetIndexPtr(pKeyEntry, pKeyEntry->count-1));
+      iaDelete((IA_T_ATOM *)iaGetIndexPtr(pValueEntry, pKeyEntry->count-1));
       pKeyEntry->count -= 1;
       pValueEntry->count -= 1;
       pMap->fillLevel -= 1;
