@@ -737,10 +737,17 @@ bool mapTest(int *poks, int *perrs, bool verbose) {
 int main(int argc, char *argv[]) {
   int errs=0, oks=0;
   bool verbose=false;
-  IndraArg iad[] = {{"-v", "--verbose", BOOL, &verbose, 0, "Show verbose output"}};
-  if (!indraArgParse(argc, argv, 1, iad)) {
+  int i=0;
+  char s[10]="";
+  IndraArg iad[] = {{"-v", "--verbose", BOOL, &verbose, 0, "Show verbose output"},
+  {"-i", "--int", INT, &i, 0, "Some Integer"},
+  {"-s", "--string", STRING, s, 10, "Some String"}
+  };
+  if (!indraArgParse(argc, argv, sizeof(iad)/sizeof(IndraArg), iad)) {
     exit(-1);
   }
+  if (i!=0) printf("i is set to %d\n", i);
+  if (strcmp(s, "")) printf("s is set to %s\n", s);
   /*
   if (!oldTest(&oks, &errs)) {
     printf("Old test failed\n");
