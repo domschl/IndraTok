@@ -38,6 +38,7 @@ CharConvTest test1[] = {
   {" Swahili ", "Hujambo, karibu duniani!",  24 },
   {" Tagalog ", "Kamusta, maligayang pagdating sa mundo!",  39 },
   {" Thai ", "สวัสดี, ยินดีต้อนรับสู่โลก!",  27 },
+  {" Tibetan ", "ཝ་ཡེ། འཛམ་གླིང་འདིར་ཕེབས་པར་དགའ་བསུ་ཞུ།", 39},
   {" Vietnamese ", "Xin chào, chào mừng đến với thế giới!",  37 }
 };
 
