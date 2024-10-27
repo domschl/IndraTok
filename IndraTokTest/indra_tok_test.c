@@ -4,6 +4,7 @@
 #include <string.h>
 #include <math.h>
 
+#include "indra_args.h"
 #include "indra_atom.h"
 #include "indra_tok.h"
 
@@ -736,6 +737,10 @@ bool mapTest(int *poks, int *perrs, bool verbose) {
 int main(int argc, char *argv[]) {
   int errs=0, oks=0;
   bool verbose=false;
+  IndraArg iad[] = {{"-v", "--verbose", BOOL, &verbose, 0, "Show verbose output"}};
+  if (!indraArgParse(argc, argv, 1, iad)) {
+    exit(-1);
+  }
   /*
   if (!oldTest(&oks, &errs)) {
     printf("Old test failed\n");

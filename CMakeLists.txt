@@ -3,7 +3,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project (IndraTokHome)
 
-add_definitions(-DIA_STACK_PREFERENCE=16)
+add_definitions(-DIA_STACK_PREFERENCE=32)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     include(CTest)
