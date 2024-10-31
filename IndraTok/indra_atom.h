@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdlib.h>
+#include <stdlib.h>  // IWYU pragma: export. // size_t
 
 typedef enum types {IA_ID_NIL=0, IA_ID_CHAR, IA_ID_WORD, IA_ID_INT, IA_ID_LONG, IA_ID_FLOAT,
                     IA_ID_DOUBLE, IA_ID_ATOM, IA_ID_PANY} IA_T_TYPES;
@@ -106,4 +106,3 @@ bool iaMapGet(IA_T_MAP *pMap, IA_T_ATOM *pKey, IA_T_ATOM *pValue);
 bool iaMapSet(IA_T_MAP *pMap, IA_T_ATOM *pKey, IA_T_ATOM *pValue);
 void iaMapDelete(IA_T_MAP *pMap);
 bool iaMapRemove(IA_T_MAP *pMap, IA_T_ATOM *pKey);
-
