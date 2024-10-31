@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['type_0',['type',['../struct_indra_arg.html#ae2c1c8e1767393a33d7ae3171a783565',1,'IndraArg::type'],['../struct__ia__atom.html#a0aa6523a8eeca23e8be698613ed14786',1,'_ia_atom::type']]],
-  ['types_1',['types',['../indra__atom_8h.html#a1fdc6153be01333d9ad64a8ae450249d',1,'indra_atom.h']]]
+  ['shortname_0',['shortName',['../struct_indra_arg.html#abdad4eb9a212b19aa5c21501f685159d',1,'IndraArg']]],
+  ['string_1',['STRING',['../indra__args_8h.html#a30ef6d36b906cfcd200466caa8aad383aee847e634a4297b274316de8a8ca9921',1,'indra_args.h']]]
 ];

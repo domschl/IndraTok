@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['onheap_0',['onHeap',['../struct__ia__atom.html#af691085241c8a9bc4580fc64debf9c0c',1,'_ia_atom']]]
+  ['name_0',['name',['../struct_indra_arg.html#ac5befc6a310f53044f80086d77cb095d',1,'IndraArg']]]
 ];

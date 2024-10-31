@@ -1,0 +1,13 @@
+/**
+ * @mainpage IndraTok Documentation
+ *
+ * @section intro_sec Introduction
+ *
+ * Welcome to the IndraTok project documentation. This project is an UNFINISHED
+ * work-in-progress library for array and map handling and string tokenization.
+ *
+ * @section module_sec Modules
+ *
+ * - @ref indraArgParse, @ref ArgParse
+ *
+ */
