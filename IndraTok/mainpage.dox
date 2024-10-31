@@ -8,6 +8,6 @@
  *
  * @section module_sec Modules
  *
- * - @ref indraArgParse, @ref ArgParse
+ * - @ref indraArgParse, @ref IndraArg
  *
  */
