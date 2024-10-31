@@ -6,6 +6,8 @@
  * Welcome to the IndraTok project documentation. This project is an UNFINISHED
  * work-in-progress library for array and map handling and string tokenization.
  *
+ * Repository: https://github.com/domschl/IndraTok
+ *
  * @section module_sec Modules
  *
  * - @ref indraArgParse, @ref IndraArg
