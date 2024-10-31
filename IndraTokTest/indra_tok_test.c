@@ -4,6 +4,7 @@
 #include <string.h>
 #include <math.h>
 
+#include "indra_args.h"
 #include "indra_atom.h"
 #include "indra_tok.h"
 
@@ -38,6 +39,7 @@ CharConvTest test1[] = {
   {" Swahili ", "Hujambo, karibu duniani!",  24 },
   {" Tagalog ", "Kamusta, maligayang pagdating sa mundo!",  39 },
   {" Thai ", "สวัสดี, ยินดีต้อนรับสู่โลก!",  27 },
+  {" Tibetan ", "ཝ་ཡེ། འཛམ་གླིང་འདིར་ཕེབས་པར་དགའ་བསུ་ཞུ།", 39},
   {" Vietnamese ", "Xin chào, chào mừng đến với thế giới!",  37 }
 };
 
@@ -735,6 +737,17 @@ bool mapTest(int *poks, int *perrs, bool verbose) {
 int main(int argc, char *argv[]) {
   int errs=0, oks=0;
   bool verbose=false;
+  int i=0;
+  char s[10]="";
+  IndraArg iad[] = {{"-v", "--verbose", BOOL, &verbose, 0, "Show verbose output"},
+  {"-i", "--int", INT, &i, 0, "Some Integer"},
+  {"-s", "--string", STRING, s, 10, "Some String"}
+  };
+  if (!indraArgParse(argc, argv, sizeof(iad)/sizeof(IndraArg), iad)) {
+    exit(-1);
+  }
+  if (i!=0) printf("i is set to %d\n", i);
+  if (strcmp(s, "")) printf("s is set to %s\n", s);
   /*
   if (!oldTest(&oks, &errs)) {
     printf("Old test failed\n");
