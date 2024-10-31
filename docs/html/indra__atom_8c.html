@@ -106,14 +106,19 @@ $(function(){ initResizable(false); });
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a1486853b0e1ba257380f6a9af5e158ef" id="r_a1486853b0e1ba257380f6a9af5e158ef"><td class="memItemLeft" align="right" valign="top">unsigned long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1486853b0e1ba257380f6a9af5e158ef">_getNextLargestPowerOf2</a> (unsigned long n)</td></tr>
+<tr class="memdesc:a1486853b0e1ba257380f6a9af5e158ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the next largest power of 2 for a given number.  <br /></td></tr>
 <tr class="separator:a1486853b0e1ba257380f6a9af5e158ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7376789028a21bcea9c5ef7d39814bcb" id="r_a7376789028a21bcea9c5ef7d39814bcb"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7376789028a21bcea9c5ef7d39814bcb">iaGetRecsize</a> (const <a class="el" href="indra__atom_8h.html#a437131544bc147e80a2ebc7044a05ae8">IA_T_ATOM</a> *pAtom)</td></tr>
+<tr class="memdesc:a7376789028a21bcea9c5ef7d39814bcb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the record size of an atom.  <br /></td></tr>
 <tr class="separator:a7376789028a21bcea9c5ef7d39814bcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6d0c2a12c45817e14a5e1de2fa7a2256" id="r_a6d0c2a12c45817e14a5e1de2fa7a2256"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6d0c2a12c45817e14a5e1de2fa7a2256">iaDelete</a> (<a class="el" href="indra__atom_8h.html#a437131544bc147e80a2ebc7044a05ae8">IA_T_ATOM</a> *pAtom)</td></tr>
+<tr class="memdesc:a6d0c2a12c45817e14a5e1de2fa7a2256"><td class="mdescLeft">&#160;</td><td class="mdescRight">Delete an atom and free its memory.  <br /></td></tr>
 <tr class="separator:a6d0c2a12c45817e14a5e1de2fa7a2256"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5c41870227d884fd1058c7918c3f84d4" id="r_a5c41870227d884fd1058c7918c3f84d4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5c41870227d884fd1058c7918c3f84d4">_recCopy</a> (<a class="el" href="indra__atom_8h.html#a437131544bc147e80a2ebc7044a05ae8">IA_T_ATOM</a> *dest, <a class="el" href="indra__atom_8h.html#a437131544bc147e80a2ebc7044a05ae8">IA_T_ATOM</a> *src)</td></tr>
+<tr class="memdesc:a5c41870227d884fd1058c7918c3f84d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Recursively copy an atom.  <br /></td></tr>
 <tr class="separator:a5c41870227d884fd1058c7918c3f84d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa25d917a9ea6da2f9742f93cb7072833" id="r_aa25d917a9ea6da2f9742f93cb7072833"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa25d917a9ea6da2f9742f93cb7072833">iaCreateCapacity</a> (<a class="el" href="indra__atom_8h.html#a437131544bc147e80a2ebc7044a05ae8">IA_T_ATOM</a> *pAtom, int type, size_t recsize, size_t capacity, size_t count, void *pData)</td></tr>
+<tr class="memdesc:aa25d917a9ea6da2f9742f93cb7072833"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create an atom with a specified capacity.  <br /></td></tr>
 <tr class="separator:aa25d917a9ea6da2f9742f93cb7072833"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a51fb48b04bae71e2ec6327352bfc1b4b" id="r_a51fb48b04bae71e2ec6327352bfc1b4b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a51fb48b04bae71e2ec6327352bfc1b4b">iaCreate</a> (<a class="el" href="indra__atom_8h.html#a437131544bc147e80a2ebc7044a05ae8">IA_T_ATOM</a> *pAtom, int type, size_t recsize, size_t count, void *pData)</td></tr>
 <tr class="separator:a51fb48b04bae71e2ec6327352bfc1b4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -201,6 +206,15 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Get the next largest power of 2 for a given number. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">n</td><td>The input number. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The next largest power of 2. </dd></dl>
+
 </div>
 </div>
 <a id="afe74f834f3876c2756d3ded632236748" name="afe74f834f3876c2756d3ded632236748"></a>
@@ -259,6 +273,17 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Recursively copy an atom. </p>
+<p>Recursively copy an atom. If the atom is an array, it recursively copies all elements. Internal use.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dest</td><td>Pointer to the destination atom. </td></tr>
+    <tr><td class="paramname">src</td><td>Pointer to the source atom. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if the copy was successful, false otherwise. </dd></dl>
 
 </div>
 </div>
@@ -379,6 +404,20 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Create an atom with a specified capacity. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pAtom</td><td>Pointer to the atom to create. </td></tr>
+    <tr><td class="paramname">type</td><td>The type of the atom. </td></tr>
+    <tr><td class="paramname">recsize</td><td>The record size of the atom. </td></tr>
+    <tr><td class="paramname">capacity</td><td>The capacity of the atom. </td></tr>
+    <tr><td class="paramname">count</td><td>The initial count of elements in the atom. </td></tr>
+    <tr><td class="paramname">pData</td><td>Pointer to the initial data. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if the atom was successfully created, false otherwise. </dd></dl>
+
 </div>
 </div>
 <a id="a476b7c914a43bfe550e7eb5c1f247a73" name="a476b7c914a43bfe550e7eb5c1f247a73"></a>
@@ -416,6 +455,15 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Delete an atom and free its memory. </p>
+<p>This function deletes an atom and frees its memory. If the atom is an array, it recursively deletes all elements.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pAtom</td><td>Pointer to the atom to delete. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -576,6 +624,16 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Get the record size of an atom. </p>
+<p>This function returns the record size of an atom. If the atom is on the heap, it returns the record size of the heap.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pAtom</td><td>Pointer to the atom. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The record size of the atom. </dd></dl>
 
 </div>
 </div>

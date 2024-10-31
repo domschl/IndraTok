@@ -1,19 +1,37 @@
-//        7       6       5       4       3       2       1       0
-// 7654321076543210765432107654321076543210765432107654321076543210
-// |----
-// 1  2
+/**
+ * @file indra_atom.h
+ * @brief Header file for IndraTok atom data structure and related functions.
+ */
+
 #pragma once
 
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>  // IWYU pragma: export. // size_t
 
-typedef enum types {IA_ID_NIL=0, IA_ID_CHAR, IA_ID_WORD, IA_ID_INT, IA_ID_LONG, IA_ID_FLOAT,
-                    IA_ID_DOUBLE, IA_ID_ATOM, IA_ID_PANY} IA_T_TYPES;
+/**
+ * @enum types
+ * @brief Enumeration of data types supported by IA_T_ATOM.
+ */
+typedef enum types {
+    IA_ID_NIL = 0,   /**< Nil type */
+    IA_ID_CHAR,      /**< Character type */
+    IA_ID_WORD,      /**< Word type */
+    IA_ID_INT,       /**< Integer type */
+    IA_ID_LONG,      /**< Long integer type */
+    IA_ID_FLOAT,     /**< Float type */
+    IA_ID_DOUBLE,    /**< Double type */
+    IA_ID_ATOM,      /**< Atom type */
+    IA_ID_PANY       /**< Pointer to any type */
+} IA_T_TYPES;
 
+/**
+ * @struct _ia_t_heap_header
+ * @brief Header for heap-allocated data.
+ */
 typedef struct _ia_t_heap_header {
-  size_t capacity;
-  size_t recsize;
+    size_t capacity; /**< Capacity of the heap allocation */
+    size_t recsize;  /**< Size of each record */
 } IA_T_HEAP_HEADER;
 
 // Stack preference: the higher the number, the more data is stored on the stack
@@ -44,21 +62,23 @@ typedef struct _ia_atom IA_T_ATOM;
 #define IA_STACK_DOUBLES (sizeof(void *) *IA_STACK_PREFERENCE / sizeof(double))
 
 
-//* Std struct
+/**
+ * @struct _ia_atom
+ * @brief Structure representing an atom.
+ */
 struct _ia_atom {
-  unsigned long onHeap:1;  //* is on heap
-  unsigned long type:5;    //* data type
-  size_t count:58;         //* 64-5-1 XXX arch-dep! count of elements, <=IA_STACK_* on stack, >IA_STACK_* on heap
-  //* actual data
-  union _data {
-    uint8_t c[IA_STACK_CHARS];
-    uint16_t w[IA_STACK_WORDS];
-    uint32_t i[IA_STACK_INTS];
-    uint64_t l[IA_STACK_LONGS];
-    float f[IA_STACK_FLOATS];
-    double d[IA_STACK_DOUBLES];
-    IA_T_HEAP_HEADER *pHeap;
-  } data;
+    unsigned long onHeap : 1; /**< Flag indicating if data is on heap */
+    unsigned long type : 5;   /**< Data type */
+    size_t count : 58;        /**< Count of elements, 58 bits, together with type (5 bits) and onHeap (1 bit) 64 bits are used */
+    union _data {
+        uint8_t  c[IA_STACK_CHARS];      /**< Character data */
+        uint16_t w[IA_STACK_WORDS];      /**< Word data */
+        uint32_t i[IA_STACK_INTS];       /**< Integer data */
+        uint64_t l[IA_STACK_LONGS];      /**< Long integer data */
+        float    f[IA_STACK_FLOATS];     /**< Float data */
+        double   d[IA_STACK_DOUBLES];    /**< Double data */
+        IA_T_HEAP_HEADER *pHeap;         /**< Pointer to heap data */
+    } data; /**< Union for storing data */
 };
 
 void iaDelete(IA_T_ATOM *pAtom);
@@ -95,10 +115,14 @@ bool iaCopy(IA_T_ATOM *pSrc, IA_T_ATOM *pDest);
 bool iaJoin(IA_T_ATOM *pRoot, IA_T_ATOM *pAppend);
 bool iaSlice(IA_T_ATOM *pSrc, IA_T_ATOM *pDest, size_t start, size_t len);
 
+/**
+ * @struct _ia_t_map
+ * @brief Structure representing a map.
+ */
 typedef struct _ia_t_map {
-  unsigned long fillLevel;
-  IA_T_ATOM hash;
-  IA_T_ATOM values;
+    unsigned long fillLevel; /**< Fill level of the map */
+    IA_T_ATOM hash;          /**< Hash atom */
+    IA_T_ATOM values;        /**< Values atom */
 } IA_T_MAP;
 
 bool iaCreateMap(IA_T_MAP *pMap, size_t capacity);

@@ -98,6 +98,9 @@ $(function(){ initResizable(false); });
   <div class="headertitle"><div class="title">indra_atom.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>Header file for IndraTok atom data structure and related functions.  
+<a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;stdint.h&gt;</code><br />
 <code>#include &lt;stdbool.h&gt;</code><br />
 <code>#include &lt;stdlib.h&gt;</code><br />
@@ -107,12 +110,15 @@ $(function(){ initResizable(false); });
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ia__t__heap__header.html">_ia_t_heap_header</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Header for heap-allocated data.  <a href="struct__ia__t__heap__header.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ia__atom.html">_ia_atom</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Structure representing an atom.  <a href="struct__ia__atom.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">union &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="union__ia__atom_1_1__data.html">_ia_atom::_data</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ia__t__map.html">_ia_t_map</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Structure representing a map.  <a href="struct__ia__t__map.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
@@ -152,7 +158,7 @@ Typedefs</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
 <tr class="memitem:a1fdc6153be01333d9ad64a8ae450249d" id="r_a1fdc6153be01333d9ad64a8ae450249d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1fdc6153be01333d9ad64a8ae450249d">types</a> { <br />
-&#160;&#160;<a class="el" href="#a1fdc6153be01333d9ad64a8ae450249da968eff776af370339f6b2d84864ebabb">IA_ID_NIL</a> =0
+&#160;&#160;<a class="el" href="#a1fdc6153be01333d9ad64a8ae450249da968eff776af370339f6b2d84864ebabb">IA_ID_NIL</a> = 0
 , <a class="el" href="#a1fdc6153be01333d9ad64a8ae450249da29bcf5ed82c41e231c66d1c31fd37277">IA_ID_CHAR</a>
 , <a class="el" href="#a1fdc6153be01333d9ad64a8ae450249daedc3f084fe99ad204b1e40738688f81e">IA_ID_WORD</a>
 , <a class="el" href="#a1fdc6153be01333d9ad64a8ae450249dae75e58173adc62105b8202b2f700a70e">IA_ID_INT</a>
@@ -165,17 +171,21 @@ Enumerations</h2></td></tr>
 &#160;&#160;<a class="el" href="#a1fdc6153be01333d9ad64a8ae450249da336ff64e26a7f5f391e7abc06ac186db">IA_ID_PANY</a>
 <br />
  }</td></tr>
+<tr class="memdesc:a1fdc6153be01333d9ad64a8ae450249d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration of data types supported by IA_T_ATOM.  <a href="#a1fdc6153be01333d9ad64a8ae450249d">More...</a><br /></td></tr>
 <tr class="separator:a1fdc6153be01333d9ad64a8ae450249d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a6d0c2a12c45817e14a5e1de2fa7a2256" id="r_a6d0c2a12c45817e14a5e1de2fa7a2256"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6d0c2a12c45817e14a5e1de2fa7a2256">iaDelete</a> (<a class="el" href="#a437131544bc147e80a2ebc7044a05ae8">IA_T_ATOM</a> *pAtom)</td></tr>
+<tr class="memdesc:a6d0c2a12c45817e14a5e1de2fa7a2256"><td class="mdescLeft">&#160;</td><td class="mdescRight">Delete an atom and free its memory.  <br /></td></tr>
 <tr class="separator:a6d0c2a12c45817e14a5e1de2fa7a2256"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa25d917a9ea6da2f9742f93cb7072833" id="r_aa25d917a9ea6da2f9742f93cb7072833"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa25d917a9ea6da2f9742f93cb7072833">iaCreateCapacity</a> (<a class="el" href="#a437131544bc147e80a2ebc7044a05ae8">IA_T_ATOM</a> *pAtom, int type, size_t recsize, size_t capacity, size_t count, void *pData)</td></tr>
+<tr class="memdesc:aa25d917a9ea6da2f9742f93cb7072833"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create an atom with a specified capacity.  <br /></td></tr>
 <tr class="separator:aa25d917a9ea6da2f9742f93cb7072833"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a51fb48b04bae71e2ec6327352bfc1b4b" id="r_a51fb48b04bae71e2ec6327352bfc1b4b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a51fb48b04bae71e2ec6327352bfc1b4b">iaCreate</a> (<a class="el" href="#a437131544bc147e80a2ebc7044a05ae8">IA_T_ATOM</a> *pAtom, int type, size_t recsize, size_t count, void *pData)</td></tr>
 <tr class="separator:a51fb48b04bae71e2ec6327352bfc1b4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7376789028a21bcea9c5ef7d39814bcb" id="r_a7376789028a21bcea9c5ef7d39814bcb"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7376789028a21bcea9c5ef7d39814bcb">iaGetRecsize</a> (const <a class="el" href="#a437131544bc147e80a2ebc7044a05ae8">IA_T_ATOM</a> *pAtom)</td></tr>
+<tr class="memdesc:a7376789028a21bcea9c5ef7d39814bcb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the record size of an atom.  <br /></td></tr>
 <tr class="separator:a7376789028a21bcea9c5ef7d39814bcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0dc9752679ebdc0fc1df7fe044d51f5c" id="r_a0dc9752679ebdc0fc1df7fe044d51f5c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0dc9752679ebdc0fc1df7fe044d51f5c">iaSetChar</a> (<a class="el" href="#a437131544bc147e80a2ebc7044a05ae8">IA_T_ATOM</a> *pAtom, uint8_t value)</td></tr>
 <tr class="separator:a0dc9752679ebdc0fc1df7fe044d51f5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -242,7 +252,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ab1729c9aa6488e2fbd62b560a04b8b4d" id="r_ab1729c9aa6488e2fbd62b560a04b8b4d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab1729c9aa6488e2fbd62b560a04b8b4d">iaMapRemove</a> (<a class="el" href="#a47b16a8e4ea9ddb8194c748f08beb004">IA_T_MAP</a> *pMap, <a class="el" href="#a437131544bc147e80a2ebc7044a05ae8">IA_T_ATOM</a> *pKey)</td></tr>
 <tr class="separator:ab1729c9aa6488e2fbd62b560a04b8b4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Macro Definition Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Header file for IndraTok atom data structure and related functions. </p>
+</div><h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a58e6f6b8aaf4d7ec7f97b60aedeff4dd" name="a58e6f6b8aaf4d7ec7f97b60aedeff4dd"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a58e6f6b8aaf4d7ec7f97b60aedeff4dd">&#9670;&#160;</a></span>IA_MIN_NEW_CAPACITY</h2>
 
@@ -452,16 +464,27 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Enumeration of data types supported by IA_T_ATOM. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249da968eff776af370339f6b2d84864ebabb" name="a1fdc6153be01333d9ad64a8ae450249da968eff776af370339f6b2d84864ebabb"></a>IA_ID_NIL&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249da29bcf5ed82c41e231c66d1c31fd37277" name="a1fdc6153be01333d9ad64a8ae450249da29bcf5ed82c41e231c66d1c31fd37277"></a>IA_ID_CHAR&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249daedc3f084fe99ad204b1e40738688f81e" name="a1fdc6153be01333d9ad64a8ae450249daedc3f084fe99ad204b1e40738688f81e"></a>IA_ID_WORD&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249dae75e58173adc62105b8202b2f700a70e" name="a1fdc6153be01333d9ad64a8ae450249dae75e58173adc62105b8202b2f700a70e"></a>IA_ID_INT&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249da5b9ee637b14e3b79d25681aeb0d85976" name="a1fdc6153be01333d9ad64a8ae450249da5b9ee637b14e3b79d25681aeb0d85976"></a>IA_ID_LONG&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249dac0684413fd10cb6d6128d3066043e637" name="a1fdc6153be01333d9ad64a8ae450249dac0684413fd10cb6d6128d3066043e637"></a>IA_ID_FLOAT&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249da2c54bf457a923c948bebb8eaffdcae62" name="a1fdc6153be01333d9ad64a8ae450249da2c54bf457a923c948bebb8eaffdcae62"></a>IA_ID_DOUBLE&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249dacf6bceb57f5d8cbbd3e778a33d64388a" name="a1fdc6153be01333d9ad64a8ae450249dacf6bceb57f5d8cbbd3e778a33d64388a"></a>IA_ID_ATOM&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249da336ff64e26a7f5f391e7abc06ac186db" name="a1fdc6153be01333d9ad64a8ae450249da336ff64e26a7f5f391e7abc06ac186db"></a>IA_ID_PANY&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249da968eff776af370339f6b2d84864ebabb" name="a1fdc6153be01333d9ad64a8ae450249da968eff776af370339f6b2d84864ebabb"></a>IA_ID_NIL&#160;</td><td class="fielddoc"><p>Nil type </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249da29bcf5ed82c41e231c66d1c31fd37277" name="a1fdc6153be01333d9ad64a8ae450249da29bcf5ed82c41e231c66d1c31fd37277"></a>IA_ID_CHAR&#160;</td><td class="fielddoc"><p>Character type </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249daedc3f084fe99ad204b1e40738688f81e" name="a1fdc6153be01333d9ad64a8ae450249daedc3f084fe99ad204b1e40738688f81e"></a>IA_ID_WORD&#160;</td><td class="fielddoc"><p>Word type </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249dae75e58173adc62105b8202b2f700a70e" name="a1fdc6153be01333d9ad64a8ae450249dae75e58173adc62105b8202b2f700a70e"></a>IA_ID_INT&#160;</td><td class="fielddoc"><p>Integer type </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249da5b9ee637b14e3b79d25681aeb0d85976" name="a1fdc6153be01333d9ad64a8ae450249da5b9ee637b14e3b79d25681aeb0d85976"></a>IA_ID_LONG&#160;</td><td class="fielddoc"><p>Long integer type </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249dac0684413fd10cb6d6128d3066043e637" name="a1fdc6153be01333d9ad64a8ae450249dac0684413fd10cb6d6128d3066043e637"></a>IA_ID_FLOAT&#160;</td><td class="fielddoc"><p>Float type </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249da2c54bf457a923c948bebb8eaffdcae62" name="a1fdc6153be01333d9ad64a8ae450249da2c54bf457a923c948bebb8eaffdcae62"></a>IA_ID_DOUBLE&#160;</td><td class="fielddoc"><p>Double type </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249dacf6bceb57f5d8cbbd3e778a33d64388a" name="a1fdc6153be01333d9ad64a8ae450249dacf6bceb57f5d8cbbd3e778a33d64388a"></a>IA_ID_ATOM&#160;</td><td class="fielddoc"><p>Atom type </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1fdc6153be01333d9ad64a8ae450249da336ff64e26a7f5f391e7abc06ac186db" name="a1fdc6153be01333d9ad64a8ae450249da336ff64e26a7f5f391e7abc06ac186db"></a>IA_ID_PANY&#160;</td><td class="fielddoc"><p>Pointer to any type </p>
+</td></tr>
 </table>
 
 </div>
@@ -584,6 +607,20 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Create an atom with a specified capacity. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pAtom</td><td>Pointer to the atom to create. </td></tr>
+    <tr><td class="paramname">type</td><td>The type of the atom. </td></tr>
+    <tr><td class="paramname">recsize</td><td>The record size of the atom. </td></tr>
+    <tr><td class="paramname">capacity</td><td>The capacity of the atom. </td></tr>
+    <tr><td class="paramname">count</td><td>The initial count of elements in the atom. </td></tr>
+    <tr><td class="paramname">pData</td><td>Pointer to the initial data. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if the atom was successfully created, false otherwise. </dd></dl>
+
 </div>
 </div>
 <a id="a476b7c914a43bfe550e7eb5c1f247a73" name="a476b7c914a43bfe550e7eb5c1f247a73"></a>
@@ -621,6 +658,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Delete an atom and free its memory. </p>
+<p>This function deletes an atom and frees its memory. If the atom is an array, it recursively deletes all elements.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pAtom</td><td>Pointer to the atom to delete. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -823,6 +869,16 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Get the record size of an atom. </p>
+<p>This function returns the record size of an atom. If the atom is on the heap, it returns the record size of the heap.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pAtom</td><td>Pointer to the atom. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The record size of the atom. </dd></dl>
 
 </div>
 </div>

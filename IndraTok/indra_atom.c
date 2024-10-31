@@ -10,6 +10,12 @@
 const unsigned long iaStackMax[] = {0, IA_STACK_CHARS, IA_STACK_WORDS, IA_STACK_INTS, IA_STACK_LONGS, IA_STACK_FLOATS, IA_STACK_DOUBLES, 0, 0};
 const unsigned long iaTypesize[] = {0, sizeof(uint8_t), sizeof(uint16_t), sizeof(uint32_t), sizeof(uint64_t), sizeof(float), sizeof(double), sizeof(struct _ia_atom), sizeof(void *)};
 
+/**
+ * @brief Get the next largest power of 2 for a given number.
+ *
+ * @param n The input number.
+ * @return The next largest power of 2.
+ */
 unsigned long _getNextLargestPowerOf2(unsigned long n) {
   n--;
   n |= n >> 1;
@@ -22,7 +28,15 @@ unsigned long _getNextLargestPowerOf2(unsigned long n) {
   return n;
 }
 
-size_t iaGetRecsize(const IA_T_ATOM *pAtom) {
+/**
+ * @brief Get the record size of an atom.
+ *
+ * This function returns the record size of an atom. If the atom is on the heap, it returns the record size of the heap.
+ *
+ * @param pAtom Pointer to the atom.
+ * @return The record size of the atom.
+ */
+ size_t iaGetRecsize(const IA_T_ATOM *pAtom) {
   if (pAtom->onHeap) {
     return pAtom->data.pHeap->recsize;
   } else {
@@ -30,6 +44,13 @@ size_t iaGetRecsize(const IA_T_ATOM *pAtom) {
   }
 }
 
+/**
+ * @brief Delete an atom and free its memory.
+ *
+ * This function deletes an atom and frees its memory. If the atom is an array, it recursively deletes all elements.
+ *
+ * @param pAtom Pointer to the atom to delete.
+ */
 void iaDelete(IA_T_ATOM *pAtom) {
   if (pAtom->type == IA_ID_ATOM) {
     for (uint64_t i=0; i<pAtom->count; i++) {
@@ -43,10 +64,19 @@ void iaDelete(IA_T_ATOM *pAtom) {
     if (pAtom->onHeap) {
       if (pAtom->data.pHeap) free(pAtom->data.pHeap);
       pAtom->data.pHeap = NULL;
-    }  
+    }
   }
 }
 
+/**
+ * @brief Recursively copy an atom.
+ *
+ * Recursively copy an atom. If the atom is an array, it recursively copies all elements. Internal use.
+ *
+ * @param dest Pointer to the destination atom.
+ * @param src Pointer to the source atom.
+ * @return true if the copy was successful, false otherwise.
+ */
 bool _recCopy(IA_T_ATOM *dest, IA_T_ATOM *src) {
   if (!src->onHeap) {
     *dest = *src;
@@ -75,6 +105,17 @@ bool _recCopy(IA_T_ATOM *dest, IA_T_ATOM *src) {
   return true;
 }
 
+/**
+ * @brief Create an atom with a specified capacity.
+ *
+ * @param pAtom Pointer to the atom to create.
+ * @param type The type of the atom.
+ * @param recsize The record size of the atom.
+ * @param capacity The capacity of the atom.
+ * @param count The initial count of elements in the atom.
+ * @param pData Pointer to the initial data.
+ * @return true if the atom was successfully created, false otherwise.
+ */
 bool iaCreateCapacity(IA_T_ATOM *pAtom, int type, size_t recsize, size_t capacity, size_t count, void *pData) {
   memset(pAtom, 0, sizeof(IA_T_ATOM));
   pAtom->type = type;
@@ -165,7 +206,7 @@ void iaSetChar(IA_T_ATOM *pAtom, uint8_t value) {
 
 bool iaSetString(IA_T_ATOM *pAtom, char *pString) {
   return iaCreate(pAtom, IA_ID_CHAR, sizeof(uint8_t), strlen(pString), pString);
-} 
+}
 
 void iaSetWord(IA_T_ATOM *pAtom, uint16_t value) {
   pAtom->onHeap = 0;
@@ -256,7 +297,7 @@ void _iaPrintRec(IA_T_ATOM *pAtom, int level) {
       }
       //if (level==maxIndent+1) printf("\n");
     }
-    
+
     switch (pAtom->type) {
     case IA_ID_CHAR:
       if (i==0) printf("\"");
@@ -298,7 +339,7 @@ void _iaPrintRec(IA_T_ATOM *pAtom, int level) {
 void iaPrint(IA_T_ATOM *pAtom) {
   _iaPrintRec(pAtom, 0);
 }
-  
+
 void iaPrintLn(IA_T_ATOM *pAtom) {
   iaPrint(pAtom);
   printf("\n");
@@ -529,7 +570,7 @@ bool iaJoin(IA_T_ATOM *pAtom, IA_T_ATOM *pAppend) {
 }
 
 bool iaSlice(IA_T_ATOM *pSrc, IA_T_ATOM *pDest, size_t start, size_t len) {
-  
+
   if (start >= pSrc->count) {
     printf("BAD SLICE\n");
     if (!iaCreate(pDest, pSrc->type, pSrc->type, 0, NULL)) {
@@ -589,7 +630,7 @@ bool iaMapGet(IA_T_MAP *pMap, IA_T_ATOM *pKey, IA_T_ATOM *pValue) {
       return true;
     }
   }
-  return false;  
+  return false;
 }
 
 bool iaMapSet(IA_T_MAP *pMap, IA_T_ATOM *pKey, IA_T_ATOM *pValue) {
