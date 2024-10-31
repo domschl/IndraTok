@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['indraarg_0',['IndraArg',['../struct_indra_arg.html',1,'']]]
+  ['indraarg_0',['IndraArg',['../structIndraArg.html',1,'']]]
 ];

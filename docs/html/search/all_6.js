@@ -93,7 +93,7 @@ var searchData=
   ['indra_5fcrc_5fcrypt_2eh_90',['indra_crc_crypt.h',['../indra__crc__crypt_8h.html',1,'']]],
   ['indra_5ftok_2ec_91',['indra_tok.c',['../indra__tok_8c.html',1,'']]],
   ['indra_5ftok_2eh_92',['indra_tok.h',['../indra__tok_8h.html',1,'']]],
-  ['indraarg_93',['IndraArg',['../struct_indra_arg.html',1,'']]],
+  ['indraarg_93',['IndraArg',['../structIndraArg.html',1,'']]],
   ['indraargparse_94',['indraArgParse',['../indra__args_8c.html#a337a0c0c5c941bb32bd305ccc675a296',1,'indraArgParse(int argc, char *argv[], int argDefC, IndraArg argDefs[]):&#160;indra_args.c'],['../indra__args_8h.html#a337a0c0c5c941bb32bd305ccc675a296',1,'indraArgParse(int argc, char *argv[], int argDefC, IndraArg argDefs[]):&#160;indra_args.c']]],
   ['indraargtypes_95',['IndraArgTypes',['../indra__args_8h.html#afb431c96bf5696431b7f91cb1318d134',1,'indra_args.h']]],
   ['indraargtypes_96',['indraArgTypes',['../indra__args_8h.html#a30ef6d36b906cfcd200466caa8aad383',1,'indra_args.h']]],
